@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'home_page_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -9,35 +11,49 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
+  final HomePageModel _model = HomePageModel();
 
-  final List<Widget> _pages = [
-    Center(child: Text('Home')),
-    Center(child: Text('Garden')),
-    Center(child: Text('Account')),
-    Center(child: Text('Camera')),
-  ];
+  void _onTabSelected(int index) {
+    setState(() {
+      _model.selectedIndex = index;
+    });
+  }
+
+  void _onCameraPressed() {
+    // Open Camera
+    debugPrint("Camera button pressed");
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: StylishBottomBar(option: BubbleBarOptions(
-          barStyle: BubbleBarStyle.vertical,
-          opacity: 0.3,
+      body: _model.pages[_model.selectedIndex],
+      bottomNavigationBar: SizedBox( height: 65,
+        child: StylishBottomBar(
+          option: AnimatedBarOptions( iconSize: 25, barAnimation: BarAnimation.fade, iconStyle: IconStyle.animated,
+          ),
+          items: [
+            BottomBarItem( icon: const Icon(LucideIcons.house400), title: const Text('Home', style: TextStyle(fontSize: 14)),
+            ),
+            BottomBarItem( icon: const Icon(LucideIcons.sprout400), title: const Text('Garden', style: TextStyle(fontSize: 14)),
+            ),
+            BottomBarItem( icon: const Icon(LucideIcons.userRound400), title: const Text('Account', style: TextStyle(fontSize: 14)),
+            ),
+          ],
+          fabLocation: StylishBarFabLocation.end,
+          hasNotch: true,
+          notchStyle: NotchStyle.circle,
+          backgroundColor: Colors.white10,
+          currentIndex: _model.selectedIndex,
+          onTap: _onTabSelected,
         ),
-        items: [
-          BottomBarItem(icon: const Icon(Icons.home), title: const Text('Home')),
-          BottomBarItem(icon: const Icon(Icons.energy_savings_leaf), title: const Text('Garden')),
-          BottomBarItem(icon: const Icon(Icons.person), title: const Text('Account')),
-          BottomBarItem(icon: const Icon(Icons.camera_alt), title: const Text('Camera')),
-        ],
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
+        shape: const CircleBorder(),
+        onPressed: _onCameraPressed,
+        child: const Icon(LucideIcons.camera, color: Colors.white),
       ),
     );
   }

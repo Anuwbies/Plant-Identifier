@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/pages/sign%20up/signup_page_model.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class SignupPage extends StatelessWidget {
   const SignupPage({super.key});
@@ -20,24 +21,24 @@ class SignupPage extends StatelessWidget {
                     children: [
                       TextField(decoration: InputDecoration(
                         hintText: 'Username',
-                        prefixIcon: Padding(padding: EdgeInsets.only(left: 10), child: Icon(Icons.person_2_outlined, size: 24),),
+                        prefixIcon: Padding(padding: EdgeInsets.only(left: 10), child: Icon(LucideIcons.userRound300, size: 24),),
                         border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
                         contentPadding: EdgeInsets.symmetric(horizontal: 20),),),
                       TextField(keyboardType: TextInputType.emailAddress, decoration: InputDecoration(
                         hintText: 'Email',
-                        prefixIcon: Padding(padding: EdgeInsets.only(left: 10), child: Icon(Icons.email_outlined, size: 24),),
+                        prefixIcon: Padding(padding: EdgeInsets.only(left: 10), child: Icon(LucideIcons.mail300, size: 24),),
                         border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
                         contentPadding: EdgeInsets.symmetric(horizontal: 20),),),
                       TextField(obscureText: true, decoration: InputDecoration(
                         hintText: 'Password',
-                        prefixIcon: Padding(padding: EdgeInsets.only(left: 10), child: Icon(Icons.lock_outline_rounded, size: 24),),
-                        suffixIcon: Padding(padding: EdgeInsets.only(right: 10), child: Icon(Icons.visibility, size: 24),),
+                        prefixIcon: Padding(padding: EdgeInsets.only(left: 10), child: Icon(LucideIcons.lock300, size: 24),),
+                        suffixIcon: Padding(padding: EdgeInsets.only(right: 10), child: Icon(LucideIcons.eye300, size: 24),),
                         border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
                         contentPadding: EdgeInsets.symmetric(horizontal: 20),),),
                       TextField(obscureText: true, decoration: InputDecoration(
                         hintText: 'Confirm Password',
-                        prefixIcon: Padding(padding: EdgeInsets.only(left: 10), child: Icon(Icons.lock_outline_rounded, size: 24),),
-                        suffixIcon: Padding(padding: EdgeInsets.only(right: 10), child: Icon(Icons.visibility, size: 24),),
+                        prefixIcon: Padding(padding: EdgeInsets.only(left: 10), child: Icon(LucideIcons.lockKeyhole300, size: 24),),
+                        suffixIcon: Padding(padding: EdgeInsets.only(right: 10), child: Icon(LucideIcons.eye300, size: 24),),
                         border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(30))),
                         contentPadding: EdgeInsets.symmetric(horizontal: 20),),),
                     ],
