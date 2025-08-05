@@ -18,7 +18,7 @@ class WelcomePage extends StatelessWidget {
                   children: [
                     Image.asset( 'lib/images/plant_logo.png', width: 200, height: 200,
                     ),
-                    Text( 'Plant Identifier', style: TextStyle(fontSize: 30, letterSpacing: 2, color: Colors.green, fontWeight: FontWeight.bold),
+                    Text( 'Plant Identifiers', style: TextStyle(fontSize: 30, letterSpacing: 2, color: Colors.green, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
