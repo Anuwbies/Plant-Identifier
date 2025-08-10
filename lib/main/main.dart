@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import '../color/app_colors.dart';
 import '../pages/welcome/welcome_page.dart';
+import 'package:flutter/services.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
   runApp(const MyApp());
 }
 
@@ -14,12 +21,23 @@ class MyApp extends StatelessWidget {
       title: 'Plant Identifier',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.black, // Prevents white screen flash
+        scaffoldBackgroundColor: AppColors.surfaceA0,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.green,
+          seedColor: AppColors.primaryA0,
           brightness: Brightness.dark, // Optional if you're going for a dark theme
         ),
         useMaterial3: true,
+
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryDark10, // Button background color
+            foregroundColor: AppColors.surfaceA80,        // Text/icon color
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: const StadiumBorder(),
+            textStyle: const TextStyle(fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ),
       home: const WelcomePage(),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_projects/color/app_colors.dart';
 import 'package:flutter_projects/pages/sign%20up/signup_page_model.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -15,7 +16,7 @@ class SignupPage extends StatelessWidget {
             child: Padding( padding: const EdgeInsets.only(top: 80, bottom: 130, left: 20, right: 20),
               child: Column( mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text("Sign Up", style: TextStyle(color: Colors.green, fontSize: 40)),
+                  const Text("Sign Up", style: TextStyle(color: AppColors.primaryA0, fontSize: 40)),
                   const SizedBox(height: 50,), //space
                   const Column( mainAxisSize: MainAxisSize.min, spacing: 15,
                     children: [
@@ -48,19 +49,18 @@ class SignupPage extends StatelessWidget {
                     children: [
                       Padding( padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: SizedBox( width: double.infinity,
-                          child: ElevatedButton( onPressed: () => model.goToSignin(context), style: ElevatedButton.styleFrom( minimumSize: const Size(0, 50), backgroundColor: Colors.green),
-                            child: const Text('Sign Up', style: TextStyle(fontSize: 20, color: Colors.white),
+                          child: ElevatedButton( onPressed: () => model.goToSignin(context), style: ElevatedButton.styleFrom( minimumSize: const Size(0, 50)),
+                            child: const Text('Sign Up', style: TextStyle(fontSize: 20),
                             ),
                           ),
                         ),
                       ),
-                      Row( mainAxisAlignment: MainAxisAlignment.center,
+                      Row( mainAxisAlignment: MainAxisAlignment.center, spacing: 5,
                         children: [
-                          Text( 'Already have an account?', style: TextStyle(fontSize: 12, color: Colors.white),
+                          Text( 'Already have an account?', style: TextStyle(fontSize: 12, color: AppColors.surfaceA50),
                           ),
-                          SizedBox(width: 10), // spacing between texts
                           GestureDetector(onTap: () => model.goToSignin(context),
-                            child: Text( 'Sign In', style: TextStyle(fontSize: 12, color: Colors.white, decoration: TextDecoration.underline, decorationColor: Colors.white),
+                            child: Text( 'Sign In', style: TextStyle(fontSize: 12, color: AppColors.primaryA20, decoration: TextDecoration.underline, decorationColor: AppColors.primaryA20),
                             ),
                           ),
                         ],

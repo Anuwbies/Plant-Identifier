@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../color/app_colors.dart';
 import 'welcome_page_model.dart';
 
 class WelcomePage extends StatelessWidget {
@@ -16,9 +18,16 @@ class WelcomePage extends StatelessWidget {
               children: [
                 Column( mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset( 'lib/images/plant_logo.png', width: 200, height: 200,
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Icon( LucideIcons.scan300, size: 200, color: AppColors.primaryDark10,
+                        ),
+                        const Icon( LucideIcons.leaf400, size: 130, color: AppColors.primaryDark10,
+                        ),
+                      ],
                     ),
-                    Text( 'Plant Identifier', style: TextStyle(fontSize: 30, letterSpacing: 2, color: Colors.green, fontWeight: FontWeight.bold),
+                    Text( 'Plant Identifier', style: TextStyle(fontSize: 30, letterSpacing: 2, color: AppColors.primaryDark10, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -26,19 +35,18 @@ class WelcomePage extends StatelessWidget {
                   children: [
                     Padding( padding: const EdgeInsets.symmetric(horizontal: 30),
                       child: SizedBox( width: double.infinity,
-                        child: ElevatedButton( onPressed: () => model.goToSignup(context), style: ElevatedButton.styleFrom( minimumSize: Size(0, 50), backgroundColor: Colors.green),
-                          child: Text('Get Started', style: TextStyle(fontSize: 20, color: Colors.white),
+                        child: ElevatedButton( onPressed: () => model.goToSignup(context), style: ElevatedButton.styleFrom( minimumSize: Size(0, 50)),
+                          child: Text('Get Started', style: TextStyle(fontSize: 20,),
                           ),
                         ),
                       ),
                     ),
-                    Row( mainAxisAlignment: MainAxisAlignment.center,
+                    Row( mainAxisAlignment: MainAxisAlignment.center, spacing: 5,
                       children: [
-                        Text( 'Already have an account?', style: TextStyle(fontSize: 12, color: Colors.white),
+                        Text( 'Already have an account?', style: TextStyle(fontSize: 12, color: AppColors.surfaceA50),
                         ),
-                        SizedBox(width: 10), // spacing between texts
                         GestureDetector(onTap: () => model.goToSignin(context),
-                          child: Text( 'Sign In', style: TextStyle(fontSize: 12, color: Colors.white, decoration: TextDecoration.underline, decorationColor: Colors.white),
+                          child: Text( 'Sign In', style: TextStyle(fontSize: 12, color: AppColors.primaryA20, decoration: TextDecoration.underline, decorationColor: AppColors.primaryA20),
                           ),
                         ),
                       ],
