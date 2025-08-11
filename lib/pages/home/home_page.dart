@@ -115,21 +115,22 @@ class _HomePageState extends State<HomePage> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Image.network(
-                                      plant.imageUrl,
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) =>
-                                          Image.asset(
-                                            'lib/images/plant_logo.png',
-                                            width: 100,
-                                            height: 100,
-                                            fit: BoxFit.contain,
-                                          ),
+                                  ClipRRect(borderRadius: BorderRadius.circular(6),
+                                    child: Container( color: AppColors.primaryDark70,
+                                      child: Image.network(
+                                        plant.imageUrl,
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                            Image.asset(
+                                              'lib/images/plant_logo.png',
+                                              width: 100,
+                                              height: 100,
+                                              fit: BoxFit.contain,
+                                            ),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 10),

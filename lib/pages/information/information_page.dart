@@ -147,7 +147,7 @@ class _InformationPageState extends State<InformationPage> {
           child: Column(
             children: [
               Container(
-                color: AppColors.surfaceA0,
+                color: AppColors.primaryDark60,
                 height: 300,
                 width: double.infinity,
                 child: Image.network(
