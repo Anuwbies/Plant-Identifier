@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_projects/color/app_colors.dart';
 
 class MyplantsPage extends StatelessWidget {
   const MyplantsPage({super.key});
@@ -12,7 +13,7 @@ class MyplantsPage extends StatelessWidget {
           children: [
             Expanded(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(6),
                 child: MediaQuery.removePadding(
                   context: context,
                   removeTop: true,
@@ -20,21 +21,61 @@ class MyplantsPage extends StatelessWidget {
                     itemCount: 10,
                     itemBuilder: (context, index) {
                       return Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
                         margin: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          leading: Image.asset(
-                            'lib/images/plant_logo.png',
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                          ),
-                          title: Text('Plant name $index'),
-                          subtitle: const Text('Scientific name'),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(6),
                           onTap: () {
                             // Handle tap
                           },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 10,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6),
+                                  child: Container(
+                                    color: AppColors.primaryDark70,
+                                    child: Image.asset(
+                                      'assets/images/plant_logo.png', // Replace with your image
+                                      width: 60, // Adjust freely
+                                      height: 60, // Adjust freely
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Plant name $index',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      const Text(
+                                        'Scientific name',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       );
                     },

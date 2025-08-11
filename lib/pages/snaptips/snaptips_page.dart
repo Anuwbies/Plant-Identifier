@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import '../../color/app_colors.dart';
 
 class SnapTipsPage extends StatelessWidget {
@@ -8,7 +9,8 @@ class SnapTipsPage extends StatelessWidget {
     return SizedBox( width: 90,
       child: Column( spacing: 8,
         children: [
-          Image.asset( imagePath, width: 90, height: 90,
+          Image.asset( imagePath,
+            width: 90, height: 90,
           ),
           Text( label,
             style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600),
@@ -28,16 +30,16 @@ class SnapTipsPage extends StatelessWidget {
             children: [
               Text( "Snap Tips", style: TextStyle(color: Colors.white, fontSize: 22),),
               Spacer(),
-              Image.asset( 'lib/images/circle.png',
+              Image.asset( 'assets/images/perfect.png',
                 width: 190, height: 190,
               ),
               const SizedBox(height: 50),
               Row( spacing: 3,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _tipItem('lib/images/circle.png', 'Too close'),
-                  _tipItem('lib/images/circle.png', 'Too far'),
-                  _tipItem('lib/images/circle.png', 'Multi-species'),
+                  _tipItem('assets/images/tooclose.png', 'Too close'),
+                  _tipItem('assets/images/toofar.png', 'Too far'),
+                  _tipItem('assets/images/multispecies.png', 'Multi-species'),
                 ],
               ),
               const Spacer(),

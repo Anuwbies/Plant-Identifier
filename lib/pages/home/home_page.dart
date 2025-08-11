@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../api/trefle_api.dart';
 import '../information/information_page.dart';
@@ -25,35 +26,25 @@ class _HomePageState extends State<HomePage> {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
+        padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
         child: Column(
           mainAxisSize: MainAxisSize.max,
           spacing: 15,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Row(
-                spacing: 8,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: Image.asset(
-                      'lib/images/circle.png',
-                      width: 45,
-                      height: 45,
-                      fit: BoxFit.cover,
-                    ),
+            Row(spacing: 8,
+              children: [
+                SvgPicture.asset( 'assets/images/logo.svg',
+                  width: 40, height: 40,
+                ),
+                const Text(
+                  'Plant Identifier',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryDark10,
                   ),
-                  const Text(
-                    'Plant Identifier',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryA0,
-                    ),
-                  )
-                ],
-              ),
+                )
+              ],
             ),
             TextField(
               decoration: InputDecoration(
@@ -92,8 +83,7 @@ class _HomePageState extends State<HomePage> {
                       itemBuilder: (context, index) {
                         final plant = plants[index];
                         return Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                           margin: const EdgeInsets.only(bottom: 10),
                           child: InkWell(
                             borderRadius: BorderRadius.circular(6),
@@ -110,8 +100,7 @@ class _HomePageState extends State<HomePage> {
                               );
                             },
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 10),
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [

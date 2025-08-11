@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class InformationPage extends StatefulWidget {
   final String imageUrl;
@@ -46,7 +47,6 @@ class _InformationPageState extends State<InformationPage> {
     final context = key.currentContext;
     if (context != null) {
       final box = context.findRenderObject() as RenderBox;
-      final position = box.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
 
       final scrollableBox = _scrollController.position.context.storageContext.findRenderObject() as RenderBox;
       final viewportHeight = scrollableBox.size.height;
@@ -136,7 +136,10 @@ class _InformationPageState extends State<InformationPage> {
       extendBodyBehindAppBar: true,
       extendBody: true,
       appBar: AppBar(
-        leading: const BackButton(),
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(LucideIcons.arrowLeft500, size: 28, color: AppColors.surfaceA80,),
+        ),
         backgroundColor: AppColors.surfaceA0.withOpacity(_appBarOpacity),
         elevation: 0,
       ),

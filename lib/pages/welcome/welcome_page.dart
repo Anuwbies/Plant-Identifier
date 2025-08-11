@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../color/app_colors.dart';
 import 'welcome_page_model.dart';
@@ -16,16 +17,10 @@ class WelcomePage extends StatelessWidget {
           child: Padding( padding: const EdgeInsets.only(top: 80, bottom: 80),
             child: Column( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column( mainAxisSize: MainAxisSize.min,
+                Column( mainAxisSize: MainAxisSize.min, spacing: 15,
                   children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Icon( LucideIcons.scan300, size: 200, color: AppColors.primaryDark10,
-                        ),
-                        const Icon( LucideIcons.leaf400, size: 130, color: AppColors.primaryDark10,
-                        ),
-                      ],
+                    SvgPicture.asset( 'assets/images/logo.svg',
+                    width: 150, height: 150,
                     ),
                     Text( 'Plant Identifier', style: TextStyle(fontSize: 30, letterSpacing: 2, color: AppColors.primaryDark10, fontWeight: FontWeight.bold),
                     ),
