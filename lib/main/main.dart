@@ -24,14 +24,14 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.surfaceA0,
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primaryA0,
-          brightness: Brightness.dark, // Optional if you're going for a dark theme
+          brightness: Brightness.dark,
         ),
         useMaterial3: true,
 
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryDark10, // Button background color
-            foregroundColor: AppColors.surfaceA80,        // Text/icon color
+            backgroundColor: AppColors.primaryDark10,
+            foregroundColor: AppColors.surfaceA80,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             shape: const StadiumBorder(),
             textStyle: const TextStyle(fontWeight: FontWeight.w600,

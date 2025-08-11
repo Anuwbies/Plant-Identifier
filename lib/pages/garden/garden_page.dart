@@ -30,8 +30,8 @@ class GardenPage extends StatelessWidget {
               indicatorColor: AppColors.primaryA0,
               labelColor: AppColors.primaryA0,
               unselectedLabelColor: AppColors.surfaceA50,
-              labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w800), // Selected tab text style
-              unselectedLabelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600), // Unselected tab text style
+              labelStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              unselectedLabelStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             Expanded(
               child: TabBarView(

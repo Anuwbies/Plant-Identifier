@@ -24,9 +24,9 @@ class AccountPage extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 shape: const CircleBorder(),
-                padding: const EdgeInsets.all(2), // adjust size here
+                padding: const EdgeInsets.all(2),
                 elevation: 6,
-                backgroundColor: Colors.white, // button background color
+                backgroundColor: Colors.white,
               ),
               child: const Icon( LucideIcons.circle200,
                 size: 60,

@@ -6,6 +6,7 @@ import 'package:flutter_projects/color/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
+import '../scan/scan_page.dart';
 import '../snaptips/snaptips_page.dart';
 
 class CameraPage extends StatefulWidget {
@@ -89,7 +90,13 @@ class _CameraPageState extends State<CameraPage> {
     if (image != null) {
       File selectedImage = File(image.path);
       print("Selected image path: ${selectedImage.path}");
-      // TODO: handle the selected image (show preview, save, upload, etc.)
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ScanPage(image: FileImage(selectedImage)),
+        ),
+      );
     }
   }
 
@@ -101,118 +108,166 @@ class _CameraPageState extends State<CameraPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold( extendBody: true, resizeToAvoidBottomInset: false,
-      body: _isInitialized ? SafeArea(
-        child: Align( alignment: Alignment.topCenter,
-          child: Column( mainAxisAlignment: MainAxisAlignment.start, mainAxisSize: MainAxisSize.max,
+    return Scaffold(
+      extendBody: true,
+      resizeToAvoidBottomInset: false,
+      body: _isInitialized
+          ? SafeArea(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
             children: [
-              SizedBox( height: 60,
-                child: Padding( padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Row( mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28,),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                      ),
-                      Spacer(),
-                      IconButton(
-                        icon: Icon(
-                          _isFlashOn
-                              ? LucideIcons.zap300
-                              : LucideIcons.zapOff300,
-                          color: Colors.white,
-                          size: 22,
+              SizedBox(
+                height: 60,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
                         ),
-                        onPressed: _toggleFlash,
-                      ),
-                      IconButton(
-                        icon: Icon(LucideIcons.switchCamera300, color: Colors.white, size: 24,),
-                        onPressed: _switchCamera,
-                      )
-                    ]
-                  ),
+                        const Spacer(),
+                        IconButton(
+                          icon: Icon(
+                            _isFlashOn
+                                ? LucideIcons.zap300
+                                : LucideIcons.zapOff300,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                          onPressed: _toggleFlash,
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            LucideIcons.switchCamera300,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          onPressed: _switchCamera,
+                        )
+                      ]),
                 ),
               ),
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Stack( alignment: Alignment.center,
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
                     CameraPreview(_controller),
-                    Icon( LucideIcons.scan100, color: Colors.white, size: 350,
+                    Icon(
+                      LucideIcons.scan100,
+                      color: Colors.white,
+                      size: 350,
                     ),
                   ],
                 ),
               ),
               Expanded(
-                child: Align( alignment: Alignment.center,
-                  child: Row( mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Column( mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.photo_rounded, color: AppColors.surfaceA80),
-                            iconSize: 28,
-                            onPressed: _pickImageFromGallery,
-                          ),
-                          Text("Photos", style: TextStyle(color: AppColors.surfaceA60, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          shape: const CircleBorder(),
-                          padding: const EdgeInsets.all(2),
-                          elevation: 6,
-                          backgroundColor: Colors.white,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.photo_rounded,
+                                color: AppColors.surfaceA80,
+                              ),
+                              iconSize: 28,
+                              onPressed: _pickImageFromGallery,
+                            ),
+                            Text(
+                              "Photos",
+                              style: TextStyle(
+                                  color: AppColors.surfaceA60,
+                                  fontSize: 12),
+                            ),
+                          ],
                         ),
-                        child: const Icon(
-                          LucideIcons.circle200,
-                          size: 60,
-                          color: Colors.black,
-                        ),
-                        onPressed: () async {
-                          if (!_isInitialized || _isTakingPicture) return;
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: const CircleBorder(),
+                            padding: const EdgeInsets.all(2),
+                            elevation: 6,
+                            backgroundColor: Colors.white,
+                          ),
+                          child: const Icon(
+                            LucideIcons.circle200,
+                            size: 60,
+                            color: Colors.black,
+                          ),
+                          onPressed: () async {
+                            if (!_isInitialized || _isTakingPicture)
+                              return;
 
-                          setState(() {
-                            _isTakingPicture = true;
-                          });
-
-                          try {
-                            final XFile picture = await _controller.takePicture();
-                            print('Picture saved at: ${picture.path}');
-                            // TODO: handle the picture file (show preview, save, upload, etc.)
-                          } catch (e) {
-                            print('Error taking picture: $e');
-                          } finally {
                             setState(() {
-                              _isTakingPicture = false;
+                              _isTakingPicture = true;
                             });
-                          }
-                        },
-                      ),
-                      Column( mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.help, color: AppColors.surfaceA80),
-                            iconSize: 28,
-                            onPressed: () {
+
+                            try {
+                              final XFile picture =
+                              await _controller.takePicture();
+                              print('Picture saved at: ${picture.path}');
+
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const SnapTipsPage()),
+                                MaterialPageRoute(
+                                  builder: (_) => ScanPage(
+                                      image: FileImage(File(picture.path))),
+                                ),
                               );
-                            },
-                          ),
-                          Text("Snap Tips", style: TextStyle(color: AppColors.surfaceA60, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ]
-                  ),
+                            } catch (e) {
+                              print('Error taking picture: $e');
+                            } finally {
+                              setState(() {
+                                _isTakingPicture = false;
+                              });
+                            }
+                          },
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.help,
+                                color: AppColors.surfaceA80,
+                              ),
+                              iconSize: 28,
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                      const SnapTipsPage()),
+                                );
+                              },
+                            ),
+                            Text(
+                              "Snap Tips",
+                              style: TextStyle(
+                                  color: AppColors.surfaceA60,
+                                  fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ]),
                 ),
               )
-            ]
+            ],
           ),
         ),
       )

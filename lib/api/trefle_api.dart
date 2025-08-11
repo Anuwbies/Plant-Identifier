@@ -38,7 +38,6 @@ class TrefleApi {
 
         final plants = plantsJson.map((json) => Plant.fromJson(json)).toList();
 
-        // Shuffle and take 'limit' plants
         plants.shuffle(Random());
         return plants.take(limit).toList();
       } else {
@@ -46,6 +45,31 @@ class TrefleApi {
       }
     } catch (e) {
       throw Exception('Error fetching plants: $e');
+    }
+  }
+
+  /// Search plants by common or scientific name
+  static Future<List<Plant>> searchPlants(String query, {int limit = 20}) async {
+    try {
+      final uri = Uri.parse('$_baseUrl/plants/search')
+          .replace(queryParameters: {
+        'token': _token,
+        'q': query,
+        'page_size': limit.toString(),
+      });
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> plantsJson = data['data'];
+
+        return plantsJson.map((json) => Plant.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to search plants: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error searching plants: $e');
     }
   }
 }

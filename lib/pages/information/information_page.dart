@@ -21,6 +21,13 @@ class _InformationPageState extends State<InformationPage> {
   final ScrollController _scrollController = ScrollController();
   double _appBarOpacity = 0.0;
 
+  final GlobalKey _medicalKey = GlobalKey();
+  final GlobalKey _culinaryKey = GlobalKey();
+  final GlobalKey _culturalKey = GlobalKey();
+  final GlobalKey _safetyKey = GlobalKey();
+  final GlobalKey _ecologicalKey = GlobalKey();
+  final GlobalKey _cultivationKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +40,27 @@ class _InformationPageState extends State<InformationPage> {
         });
       }
     });
+  }
+
+  void _scrollToSection(GlobalKey key) {
+    final context = key.currentContext;
+    if (context != null) {
+      final box = context.findRenderObject() as RenderBox;
+      final position = box.localToGlobal(Offset.zero, ancestor: context.findRenderObject());
+
+      final scrollableBox = _scrollController.position.context.storageContext.findRenderObject() as RenderBox;
+      final viewportHeight = scrollableBox.size.height;
+
+      final widgetOffset = box.localToGlobal(Offset.zero, ancestor: scrollableBox).dy;
+
+      final targetOffset = _scrollController.offset + widgetOffset - (viewportHeight / 2) + (box.size.height / 2);
+
+      _scrollController.animateTo(
+        targetOffset.clamp(_scrollController.position.minScrollExtent, _scrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   Widget _buildTagButton(String label, {required VoidCallback onPressed}) {
@@ -54,7 +82,7 @@ class _InformationPageState extends State<InformationPage> {
     );
   }
 
-  Widget _buildSection(IconData icon, String title, String description) {
+  Widget _buildSection(IconData icon, String title, List<String> bulletPoints) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
       padding: const EdgeInsets.all(12),
@@ -79,9 +107,22 @@ class _InformationPageState extends State<InformationPage> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            description,
-            style: const TextStyle(fontSize: 14, color: AppColors.surfaceA50),
+          ...bulletPoints.map(
+                (point) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("•  ", style: TextStyle(fontSize: 14, color: AppColors.surfaceA50)),
+                  Expanded(
+                    child: Text(
+                      point,
+                      style: const TextStyle(fontSize: 14, color: AppColors.surfaceA50),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -106,7 +147,7 @@ class _InformationPageState extends State<InformationPage> {
           child: Column(
             children: [
               Container(
-                color: Colors.white,
+                color: AppColors.surfaceA0,
                 height: 300,
                 width: double.infinity,
                 child: Image.network(
@@ -161,30 +202,120 @@ class _InformationPageState extends State<InformationPage> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildTagButton("Medical", onPressed: () {}),
-                            _buildTagButton("Culinary", onPressed: () {}),
-                            _buildTagButton("Cultural Significance", onPressed: () {}),
-                            _buildTagButton("Safety & Toxicity", onPressed: () {}),
-                            _buildTagButton("Ecological Role", onPressed: () {}),
-                            _buildTagButton("Cultivation Tips", onPressed: () {}),
+                            _buildTagButton(
+                                "Medical",
+                                onPressed: () =>
+                                    _scrollToSection(_medicalKey)),
+                            _buildTagButton(
+                                "Culinary",
+                                onPressed: () =>
+                                    _scrollToSection(_culinaryKey)),
+                            _buildTagButton(
+                                "Cultural Significance",
+                                onPressed: () =>
+                                    _scrollToSection(_culturalKey)),
+                            _buildTagButton(
+                                "Safety & Toxicity",
+                                onPressed: () =>
+                                    _scrollToSection(_safetyKey)),
+                            _buildTagButton(
+                                "Ecological Role",
+                                onPressed: () =>
+                                    _scrollToSection(_ecologicalKey)),
+                            _buildTagButton(
+                                "Cultivation Tips",
+                                onPressed: () =>
+                                    _scrollToSection(_cultivationKey)),
                           ],
                         ),
                       ),
                     ),
                     Column( spacing: 10,
                       children: [
-                        _buildSection(Icons.healing, "Medical Use",
-                            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."),
-                        _buildSection(Icons.restaurant, "Culinary Use",
-                            "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."),
-                        _buildSection(Icons.public, "Cultural Significance",
-                            "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."),
-                        _buildSection(Icons.warning, "Safety & Toxicity",
-                            "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
-                        _buildSection(Icons.eco, "Ecological Role",
-                            "Lorem ipsum dolor sit amet, consectetur adipiscing elit."),
-                        _buildSection(Icons.grass, "Cultivation Tips",
-                            "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium."),
+                        Container(
+                          key: _medicalKey,
+                          child: _buildSection(
+                            Icons.healing,
+                            "Medical Use",
+                            [
+                              "Used traditionally to treat inflammation and pain.",
+                              "Contains antioxidants that support immune health.",
+                              "May help reduce symptoms of common colds and flu.",
+                              "Has compounds with antibacterial properties.",
+                              "Applied topically for wound healing in some cultures.",
+                            ],
+                          ),
+                        ),
+                        Container(
+                          key: _culinaryKey,
+                          child: _buildSection(
+                            Icons.restaurant,
+                            "Culinary Use",
+                            [
+                              "Leaves used fresh in salads for a peppery flavor.",
+                              "Flowers edible and often used as garnish.",
+                              "Seeds ground into spice blends in some cuisines.",
+                              "Roots cooked in stews and soups for added aroma.",
+                              "Used to make herbal teas and infusions.",
+                            ],
+                          ),
+                        ),
+                        Container(
+                          key: _culturalKey,
+                          child: _buildSection(
+                            Icons.public,
+                            "Cultural Significance",
+                            [
+                              "Symbolizes healing and protection in folklore.",
+                              "Used in traditional ceremonies and rituals.",
+                              "Represents fertility and growth in various cultures.",
+                              "Often gifted during festivals for good luck.",
+                              "Featured in folk songs and stories across regions.",
+                            ],
+                          ),
+                        ),
+                        Container(
+                          key: _safetyKey,
+                          child: _buildSection(
+                            Icons.warning,
+                            "Safety & Toxicity",
+                            [
+                              "Generally safe when used in recommended amounts.",
+                              "May cause allergic reactions in sensitive individuals.",
+                              "Avoid ingestion in large quantities without medical advice.",
+                              "Not recommended for pregnant or breastfeeding women.",
+                              "Keep out of reach of children due to potential toxicity.",
+                            ],
+                          ),
+                        ),
+                        Container(
+                          key: _ecologicalKey,
+                          child: _buildSection(
+                            Icons.eco,
+                            "Ecological Role",
+                            [
+                              "Provides habitat and food for pollinators.",
+                              "Helps improve soil quality through nitrogen fixation.",
+                              "Contributes to biodiversity in native ecosystems.",
+                              "Acts as a natural pest deterrent in companion planting.",
+                              "Supports beneficial insect populations.",
+                            ],
+                          ),
+                        ),
+                        Container(
+                          key: _cultivationKey,
+                          child: _buildSection(
+                            Icons.grass,
+                            "Cultivation Tips",
+                            [
+                              "Thrives in well-drained soil with moderate moisture.",
+                              "Prefers partial shade to full sun exposure.",
+                              "Requires minimal fertilization once established.",
+                              "Prune regularly to encourage bushier growth.",
+                              "Resistant to most common pests and diseases.",
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ],
