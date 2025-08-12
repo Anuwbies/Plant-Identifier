@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../api/plantnet_api.dart';
@@ -49,8 +50,6 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
 
       final result = await _plantNetApi.identifyPlant(imageFile);
 
-      print('Raw API response: ${jsonEncode(result)}');
-
       if (result.isEmpty || result['results'] == null || (result['results'] as List).isEmpty) {
         if (mounted) {
           Navigator.of(context).pushReplacement(
@@ -92,7 +91,6 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
         );
       }
     } catch (e) {
-      print('Error analyzing image: $e');
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const UnknownPage()),
@@ -139,15 +137,9 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      RotationTransition(
-                        turns: _controller,
-                        child: Transform.scale(
-                          scale: 1.5,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 5,
-                            color: AppColors.primaryDark10,
-                          ),
-                        ),
+                      LoadingAnimationWidget.threeArchedCircle(
+                        color: AppColors.primaryDark10,
+                        size: 60,
                       ),
                       Icon(
                         LucideIcons.search,

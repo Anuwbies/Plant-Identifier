@@ -24,9 +24,9 @@ class Plant {
 
 class TrefleApi {
   static const String _baseUrl = 'https://trefle.io/api/v1';
-  static const String _token = 'jP6_wxVkm4zkskMQl3S0vFUiNJrnW6sY1-Ytx_1myUA'; // Replace with your token
+  static const String _token = 'jP6_wxVkm4zkskMQl3S0vFUiNJrnW6sY1-Ytx_1myUA';
 
-  static Future<List<Plant>> getRandomPlants({int limit = 10}) async {
+  static Future<List<Plant>> getRandomPlants({int limit = 20}) async {
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/plants?token=$_token&page_size=50'),
@@ -45,31 +45,6 @@ class TrefleApi {
       }
     } catch (e) {
       throw Exception('Error fetching plants: $e');
-    }
-  }
-
-  /// Search plants by common or scientific name
-  static Future<List<Plant>> searchPlants(String query, {int limit = 20}) async {
-    try {
-      final uri = Uri.parse('$_baseUrl/plants/search')
-          .replace(queryParameters: {
-        'token': _token,
-        'q': query,
-        'page_size': limit.toString(),
-      });
-
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final List<dynamic> plantsJson = data['data'];
-
-        return plantsJson.map((json) => Plant.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to search plants: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error searching plants: $e');
     }
   }
 }

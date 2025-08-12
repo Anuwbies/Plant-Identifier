@@ -1,7 +1,10 @@
+import 'dart:async';
+
+import 'package:animated_text_lerp/animated_text_lerp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../api/trefle_api.dart';
 import '../information/information_page.dart';
 
@@ -14,11 +17,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<List<Plant>> _plantsFuture;
+  String _headerText = 'Plant Identifier';
 
   @override
   void initState() {
     super.initState();
     _plantsFuture = TrefleApi.getRandomPlants();
+
+    Timer.periodic(const Duration(seconds: 7), (timer) {
+      setState(() {
+        _headerText = _headerText == 'Plant Identifier'
+            ? 'Scan and Learn'
+            : 'Plant Identifier';
+      });
+    });
   }
 
   @override
@@ -26,140 +38,210 @@ class _HomePageState extends State<HomePage> {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Column(
           mainAxisSize: MainAxisSize.max,
-          spacing: 15,
           children: [
-            Row(spacing: 8,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(spacing: 8,
+                children: [
+                  SvgPicture.asset( 'assets/images/logo.svg',
+                    width: 40, height: 40,
+                  ),
+                  AnimatedStringText(
+                    _headerText,
+                    curve: Curves.ease,
+                    duration: const Duration(seconds: 1),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryDark10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
               children: [
-                SvgPicture.asset( 'assets/images/logo.svg',
-                  width: 40, height: 40,
-                ),
                 const Text(
-                  'Plant Identifier',
+                  'Explore Plants',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primaryDark10,
                   ),
-                )
+                ),
+                Spacer(),
+                const Text(
+                  'Random picks for you',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
               ],
-            ),
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search for plants...',
-                filled: true,
-                fillColor: Colors.white10,
-                prefixIcon: const Padding(
-                  padding: EdgeInsets.only(left: 10),
-                  child: Icon(LucideIcons.search),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: const BorderSide(color: Colors.white),
-                ),
-              ),
             ),
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
-                child: FutureBuilder<List<Plant>>(
-                  future: _plantsFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No plants found'));
-                    }
-
-                    final plants = snapshot.data!;
-
-                    return ListView.builder(
-                      itemCount: plants.length,
-                      itemBuilder: (context, index) {
-                        final plant = plants[index];
-                        return Card(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                          margin: const EdgeInsets.only(bottom: 10),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(6),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => InformationPage(
-                                    imageUrl: plant.imageUrl,
-                                    commonName: plant.commonName,
-                                    scientificName: plant.scientificName,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: FutureBuilder<List<Plant>>(
+                        future: _plantsFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return ListView.builder(
+                              itemCount: 10,
+                              itemBuilder: (context, index) {
+                                return Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
-                                ),
-                              );
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipRRect(borderRadius: BorderRadius.circular(6),
-                                    child: Container( color: AppColors.primaryDark70,
-                                      child: Image.network(
-                                        plant.imageUrl,
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                            Image.asset(
-                                              'lib/images/plant_logo.png',
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(6),
+                                          child: Shimmer.fromColors(
+                                            baseColor: AppColors.surfaceA30,
+                                            highlightColor: AppColors.surfaceA40,
+                                            child: Container(
                                               width: 100,
                                               height: 100,
-                                              fit: BoxFit.contain,
+                                              color: Colors.white,
                                             ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                      MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        Align(
-                                          alignment: Alignment.topLeft,
-                                          child: Text(
-                                            plant.commonName,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16),
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Align(
-                                          alignment: Alignment.topLeft,
-                                          child: Text(
-                                            plant.scientificName,
-                                            style: const TextStyle(
-                                                fontSize: 14,
-                                                fontStyle: FontStyle.italic),
+                                        const SizedBox(width: 11),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const SizedBox(height: 6),
+                                              Shimmer.fromColors(
+                                                baseColor: AppColors.surfaceA30,
+                                                highlightColor: AppColors.surfaceA50,
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(2),
+                                                  child: Container(
+                                                    height: 14,
+                                                    width: 180,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 14),
+                                              Shimmer.fromColors(
+                                                baseColor: AppColors.surfaceA30,
+                                                highlightColor: AppColors.surfaceA50,
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(2),
+                                                  child: Container(
+                                                    height: 13,
+                                                    width: 140,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
+                                );
+                              },
+                            );
+                          }
+
+                          final plants = snapshot.data!;
+
+                          return ListView.builder(
+                            itemCount: plants.length,
+                            itemBuilder: (context, index) {
+                              final plant = plants[index];
+                              return Card(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6)),
+                                margin: const EdgeInsets.only(bottom: 10),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(6),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => InformationPage(
+                                          imageUrl: plant.imageUrl,
+                                          commonName: plant.commonName,
+                                          scientificName: plant.scientificName,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 10),
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(6),
+                                          child: Container(
+                                            color: AppColors.surfaceA30,
+                                            child: Image.network(
+                                              plant.imageUrl,
+                                              width: 100,
+                                              height: 100,
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (context, error, stackTrace) =>
+                                                  Image.asset(
+                                                    'lib/images/plant_logo.png',
+                                                    width: 100,
+                                                    height: 100,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                plant.commonName,
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                plant.scientificName,
+                                                style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontStyle: FontStyle.italic),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

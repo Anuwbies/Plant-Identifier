@@ -1,5 +1,7 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../api/ollama_api.dart';
 
@@ -36,6 +38,8 @@ class _InformationPageState extends State<InformationPage> {
   Map<String, bool> sectionLoading = {};
   String? _errorMessage;
 
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +53,22 @@ class _InformationPageState extends State<InformationPage> {
       }
     });
 
+    _precacheImage();
     _fetchAllSections();
+  }
+
+  Future<void> _precacheImage() async {
+    try {
+      await precacheImage(NetworkImage(widget.imageUrl), context);
+    } catch (e) {
+      // Handle error if needed
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;  // Image loaded or failed, stop loading spinner
+        });
+      }
+    }
   }
 
   Future<void> _fetchAllSections() async {
@@ -168,7 +187,7 @@ class _InformationPageState extends State<InformationPage> {
           if (sectionLoading[title] == true)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: List.generate(5, (index) {
+              children: List.generate(1, (index) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 6),
                   child: Row(
@@ -178,10 +197,20 @@ class _InformationPageState extends State<InformationPage> {
                           style: TextStyle(
                               fontSize: 14, color: AppColors.surfaceA50)),
                       Expanded(
-                        child: Text(
-                          "Loading $title...",
-                          style: const TextStyle(
-                              fontSize: 14, color: AppColors.surfaceA50),
+                        child: Align( alignment: Alignment.centerLeft,
+                          child: DefaultTextStyle(
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.surfaceA50,
+                            ),
+                            child: AnimatedTextKit(
+                              repeatForever: true,
+                              pause: Duration(milliseconds: 500),
+                              animatedTexts: [
+                                TyperAnimatedText('Loading $title...', speed: Duration(milliseconds: 100),)
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -239,10 +268,28 @@ class _InformationPageState extends State<InformationPage> {
           child: Column(
             children: [
               Container(
-                color: AppColors.primaryDark60,
+                color: AppColors.surfaceA10,
                 height: 300,
                 width: double.infinity,
-                child: Image.network(widget.imageUrl, fit: BoxFit.cover),
+                child: Image.network(
+                  widget.imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      return child;
+                    } else {
+                      return Center(
+                        child: LoadingAnimationWidget.beat(
+                          color: AppColors.primaryDark10,
+                          size: 40,
+                        ),
+                      );
+                    }
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(child: Icon(Icons.broken_image, size: 50));
+                  },
+                ),
               ),
               Container(color: AppColors.surfaceA0,
                 child:
