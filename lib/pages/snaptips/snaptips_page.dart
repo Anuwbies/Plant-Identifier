@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import '../../color/app_colors.dart';
 
 class SnapTipsPage extends StatelessWidget {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import '../../api/ollama_api.dart';
 
 class InformationPage extends StatefulWidget {
   final String imageUrl;
@@ -29,6 +30,12 @@ class _InformationPageState extends State<InformationPage> {
   final GlobalKey _ecologicalKey = GlobalKey();
   final GlobalKey _cultivationKey = GlobalKey();
 
+  final OllamaApi _ollamaApi = OllamaApi();
+
+  Map<String, List<String>> sectionData = {};
+  Map<String, bool> sectionLoading = {};
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
@@ -41,6 +48,58 @@ class _InformationPageState extends State<InformationPage> {
         });
       }
     });
+
+    _fetchAllSections();
+  }
+
+  Future<void> _fetchAllSections() async {
+    final Map<String, String> prompts = {
+      'Medical Use':
+      "List 3 short points describing the medicinal uses of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      'Culinary Use':
+      "List 3 short points describing the culinary uses of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      'Cultural Significance':
+      "List 3 short points describing the cultural or historical significance of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      'Safety & Toxicity':
+      "List 3 short points describing the safety concerns or toxicity of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      'Ecological Role':
+      "List 3 short bullet points describing the ecological role of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      'Cultivation Tips':
+      "List 3 short points giving cultivation and care tips for ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+    };
+
+    for (final entry in prompts.entries) {
+      _fetchSection(entry.key, entry.value);
+    }
+  }
+
+  Future<void> _fetchSection(String title, String prompt) async {
+    setState(() {
+      sectionLoading[title] = true;
+    });
+
+    try {
+      final response = await _ollamaApi.sendPrompt(
+        model: 'llama3.2:1b',
+        prompt: prompt,
+      );
+
+      final points = response
+          .split('\n')
+          .map((line) => line.replaceFirst(RegExp(r'^[-•\\d.]+\\s*'), '').trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
+
+      setState(() {
+        sectionData[title] = points;
+        sectionLoading[title] = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        sectionLoading[title] = false;
+      });
+    }
   }
 
   void _scrollToSection(GlobalKey key) {
@@ -82,9 +141,10 @@ class _InformationPageState extends State<InformationPage> {
     );
   }
 
-  Widget _buildSection(IconData icon, String title, List<String> bulletPoints) {
+  Widget _buildSection(Key key, IconData icon, String title, List<String>? bulletPoints) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      key: key,
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.surfaceA10,
@@ -95,35 +155,61 @@ class _InformationPageState extends State<InformationPage> {
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.primaryDark10, size: 20),
+              Icon(icon, color: AppColors.primaryDark10, size: 24),
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          ...bulletPoints.map(
-                (point) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("•  ", style: TextStyle(fontSize: 14, color: AppColors.surfaceA50)),
-                  Expanded(
-                    child: Text(
-                      point,
-                      style: const TextStyle(fontSize: 14, color: AppColors.surfaceA50),
-                    ),
+
+          if (sectionLoading[title] == true)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: List.generate(5, (index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("•  ",
+                          style: TextStyle(
+                              fontSize: 14, color: AppColors.surfaceA50)),
+                      Expanded(
+                        child: Text(
+                          "Loading $title...",
+                          style: const TextStyle(
+                              fontSize: 14, color: AppColors.surfaceA50),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                );
+              }),
+            )
+          else if (bulletPoints != null)
+            ...bulletPoints.map(
+                  (point) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("•  ",
+                        style: TextStyle(
+                            fontSize: 14, color: AppColors.surfaceA50)),
+                    Expanded(
+                      child: Text(
+                        point,
+                        style: const TextStyle(
+                            fontSize: 14, color: AppColors.surfaceA50),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -138,12 +224,15 @@ class _InformationPageState extends State<InformationPage> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(LucideIcons.arrowLeft500, size: 28, color: AppColors.surfaceA80,),
+          icon: const Icon(LucideIcons.arrowLeft,
+              size: 28, color: AppColors.surfaceA80),
         ),
         backgroundColor: AppColors.surfaceA0.withOpacity(_appBarOpacity),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: _errorMessage != null
+          ? Center(child: Text(_errorMessage!))
+          : SingleChildScrollView(
         controller: _scrollController,
         child: Padding(
           padding: const EdgeInsets.only(bottom: 80),
@@ -153,21 +242,14 @@ class _InformationPageState extends State<InformationPage> {
                 color: AppColors.primaryDark60,
                 height: 300,
                 width: double.infinity,
-                child: Image.network(
-                  widget.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Image.asset(
-                    'lib/images/plant_logo.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
+                child: Image.network(widget.imageUrl, fit: BoxFit.cover),
               ),
-              Container(
-                color: AppColors.surfaceA0,
-                child: Column(
+              Container(color: AppColors.surfaceA0,
+                child:
+                Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 15, bottom: 5),
+                    Padding( // grab icon
+                      padding: const EdgeInsets.only(top: 10, bottom: 5),
                       child: Container(
                         width: 40,
                         height: 5,
@@ -177,150 +259,79 @@ class _InformationPageState extends State<InformationPage> {
                         ),
                       ),
                     ),
-                    Padding(
-                      padding:
-                      const EdgeInsets.only(left: 10, right: 10, bottom: 10),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
+                    Align( // plant's name
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 10, right: 10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.commonName,
-                              style: const TextStyle(
-                                  fontSize: 24, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              widget.scientificName,
-                              style: const TextStyle(
-                                  fontSize: 16, color: AppColors.surfaceA50),
-                            )
+                            Text(widget.commonName,
+                                style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold)),
+                            Text(widget.scientificName,
+                                style: const TextStyle(
+                                    fontSize: 16,
+                                    color: AppColors.surfaceA50)),
                           ],
                         ),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
+                    Padding( // auto scroll to section
+                      padding: const EdgeInsets.symmetric(vertical: 5),
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildTagButton(
-                                "Medical",
-                                onPressed: () =>
-                                    _scrollToSection(_medicalKey)),
-                            _buildTagButton(
-                                "Culinary",
-                                onPressed: () =>
-                                    _scrollToSection(_culinaryKey)),
-                            _buildTagButton(
-                                "Cultural Significance",
-                                onPressed: () =>
-                                    _scrollToSection(_culturalKey)),
-                            _buildTagButton(
-                                "Safety & Toxicity",
-                                onPressed: () =>
-                                    _scrollToSection(_safetyKey)),
-                            _buildTagButton(
-                                "Ecological Role",
-                                onPressed: () =>
-                                    _scrollToSection(_ecologicalKey)),
-                            _buildTagButton(
-                                "Cultivation Tips",
-                                onPressed: () =>
-                                    _scrollToSection(_cultivationKey)),
-                          ],
+                            'Medical Use',
+                            'Culinary Use',
+                            'Cultural Significance',
+                            'Safety & Toxicity',
+                            'Ecological Role',
+                            'Cultivation Tips'
+                          ].map((category) {
+                            return _buildTagButton(
+                              category,
+                              onPressed: () {
+                                switch (category) {
+                                  case 'Medical Use':
+                                    _scrollToSection(_medicalKey);
+                                    break;
+                                  case 'Culinary Use':
+                                    _scrollToSection(_culinaryKey);
+                                    break;
+                                  case 'Cultural Significance':
+                                    _scrollToSection(_culturalKey);
+                                    break;
+                                  case 'Safety & Toxicity':
+                                    _scrollToSection(_safetyKey);
+                                    break;
+                                  case 'Ecological Role':
+                                    _scrollToSection(_ecologicalKey);
+                                    break;
+                                  case 'Cultivation Tips':
+                                    _scrollToSection(_cultivationKey);
+                                    break;
+                                }
+                              },
+                            );
+                          }).toList(),
                         ),
                       ),
                     ),
-                    Column( spacing: 10,
-                      children: [
-                        Container(
-                          key: _medicalKey,
-                          child: _buildSection(
-                            Icons.healing,
-                            "Medical Use",
-                            [
-                              "Used traditionally to treat inflammation and pain.",
-                              "Contains antioxidants that support immune health.",
-                              "May help reduce symptoms of common colds and flu.",
-                              "Has compounds with antibacterial properties.",
-                              "Applied topically for wound healing in some cultures.",
-                            ],
-                          ),
-                        ),
-                        Container(
-                          key: _culinaryKey,
-                          child: _buildSection(
-                            Icons.restaurant,
-                            "Culinary Use",
-                            [
-                              "Leaves used fresh in salads for a peppery flavor.",
-                              "Flowers edible and often used as garnish.",
-                              "Seeds ground into spice blends in some cuisines.",
-                              "Roots cooked in stews and soups for added aroma.",
-                              "Used to make herbal teas and infusions.",
-                            ],
-                          ),
-                        ),
-                        Container(
-                          key: _culturalKey,
-                          child: _buildSection(
-                            Icons.public,
-                            "Cultural Significance",
-                            [
-                              "Symbolizes healing and protection in folklore.",
-                              "Used in traditional ceremonies and rituals.",
-                              "Represents fertility and growth in various cultures.",
-                              "Often gifted during festivals for good luck.",
-                              "Featured in folk songs and stories across regions.",
-                            ],
-                          ),
-                        ),
-                        Container(
-                          key: _safetyKey,
-                          child: _buildSection(
-                            Icons.warning,
-                            "Safety & Toxicity",
-                            [
-                              "Generally safe when used in recommended amounts.",
-                              "May cause allergic reactions in sensitive individuals.",
-                              "Avoid ingestion in large quantities without medical advice.",
-                              "Not recommended for pregnant or breastfeeding women.",
-                              "Keep out of reach of children due to potential toxicity.",
-                            ],
-                          ),
-                        ),
-                        Container(
-                          key: _ecologicalKey,
-                          child: _buildSection(
-                            Icons.eco,
-                            "Ecological Role",
-                            [
-                              "Provides habitat and food for pollinators.",
-                              "Helps improve soil quality through nitrogen fixation.",
-                              "Contributes to biodiversity in native ecosystems.",
-                              "Acts as a natural pest deterrent in companion planting.",
-                              "Supports beneficial insect populations.",
-                            ],
-                          ),
-                        ),
-                        Container(
-                          key: _cultivationKey,
-                          child: _buildSection(
-                            Icons.grass,
-                            "Cultivation Tips",
-                            [
-                              "Thrives in well-drained soil with moderate moisture.",
-                              "Prefers partial shade to full sun exposure.",
-                              "Requires minimal fertilization once established.",
-                              "Prune regularly to encourage bushier growth.",
-                              "Resistant to most common pests and diseases.",
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                    _buildSection(_medicalKey, Icons.local_hospital, 'Medical Use',
+                        sectionData['Medical Use']),
+                    _buildSection(_culinaryKey, Icons.restaurant, 'Culinary Use',
+                        sectionData['Culinary Use']),
+                    _buildSection(_culturalKey, Icons.public, 'Cultural Significance',
+                        sectionData['Cultural Significance']),
+                    _buildSection(_safetyKey, Icons.warning, 'Safety & Toxicity',
+                        sectionData['Safety & Toxicity']),
+                    _buildSection(_ecologicalKey, Icons.eco, 'Ecological Role',
+                        sectionData['Ecological Role']),
+                    _buildSection(_cultivationKey, Icons.grass, 'Cultivation Tips',
+                        sectionData['Cultivation Tips']),
                   ],
                 ),
               ),
