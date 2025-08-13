@@ -9,6 +9,8 @@ class AppColors {
   static const Color primaryA40 = Color(0xFF95D9C3);
   static const Color primaryA50 = Color(0xFFABE0CF); // Lightest (Background highlight)
 
+  static const Color red = Color(0xFF921414);
+
   // Darker shades of primaryA0
   static const Color primaryDark10 = Color(0xFF14926F);
   static const Color primaryDark20 = Color(0xFF117860);

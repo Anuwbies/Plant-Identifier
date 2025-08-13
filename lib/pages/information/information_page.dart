@@ -1,9 +1,12 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../api/ollama_api.dart';
+import '../chat/chat_page.dart';
+import '../chat/chat_page.dart';
 
 class InformationPage extends StatefulWidget {
   final String imageUrl;
@@ -38,7 +41,14 @@ class _InformationPageState extends State<InformationPage> {
   Map<String, bool> sectionLoading = {};
   String? _errorMessage;
 
+  bool _isDisposed = false;
+
   bool _isLoading = true;
+
+  bool get _allSectionsLoaded =>
+      sectionLoading.values.every((loading) => loading == false);
+
+  bool _snackBarVisible = false;
 
   @override
   void initState() {
@@ -57,6 +67,28 @@ class _InformationPageState extends State<InformationPage> {
     _fetchAllSections();
   }
 
+  void _showLoadingSnackBar() {
+    if (!_snackBarVisible) {
+      _snackBarVisible = true;
+      IconSnackBar.show(
+        context,
+        duration: const Duration(seconds: 3),
+        snackBarType: SnackBarType.fail,
+        label: 'Please wait for information to finish',
+        labelTextStyle: TextStyle(color: Colors.white), // sets the text color
+      );
+      Future.delayed(const Duration(seconds: 2), () {
+        _snackBarVisible = false;
+      });
+    }
+  }
+
+  void dispose() {
+    _isDisposed = true;
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   Future<void> _precacheImage() async {
     try {
       await precacheImage(NetworkImage(widget.imageUrl), context);
@@ -65,7 +97,7 @@ class _InformationPageState extends State<InformationPage> {
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;  // Image loaded or failed, stop loading spinner
+          _isLoading = false;
         });
       }
     }
@@ -103,6 +135,8 @@ class _InformationPageState extends State<InformationPage> {
         prompt: prompt,
       );
 
+      if (_isDisposed) return; // page closed, ignore the result
+
       final points = response
           .split('\n')
           .map((line) => line.replaceFirst(RegExp(r'^[-•\\d.]+\\s*'), '').trim())
@@ -114,6 +148,7 @@ class _InformationPageState extends State<InformationPage> {
         sectionLoading[title] = false;
       });
     } catch (e) {
+      if (_isDisposed) return; // page closed, ignore errors too
       setState(() {
         _errorMessage = e.toString();
         sectionLoading[title] = false;
@@ -184,7 +219,24 @@ class _InformationPageState extends State<InformationPage> {
           ),
           const SizedBox(height: 8),
 
-          if (sectionLoading[title] == true)
+          // If there's an error, always show "LLM not connected"
+          if (_errorMessage != null)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text("•  ",
+                    style: TextStyle(fontSize: 14, color: AppColors.surfaceA50)),
+                Expanded(
+                  child: Text(
+                    "LLM not connected",
+                    style: TextStyle(fontSize: 14, color: AppColors.surfaceA50),
+                  ),
+                ),
+              ],
+            )
+
+          // If still loading, show loading animation
+          else if (sectionLoading[title] == true)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: List.generate(1, (index) {
@@ -194,10 +246,10 @@ class _InformationPageState extends State<InformationPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text("•  ",
-                          style: TextStyle(
-                              fontSize: 14, color: AppColors.surfaceA50)),
+                          style: TextStyle(fontSize: 14, color: AppColors.surfaceA50)),
                       Expanded(
-                        child: Align( alignment: Alignment.centerLeft,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
                           child: DefaultTextStyle(
                             style: const TextStyle(
                               fontSize: 14,
@@ -207,7 +259,10 @@ class _InformationPageState extends State<InformationPage> {
                               repeatForever: true,
                               pause: Duration(milliseconds: 500),
                               animatedTexts: [
-                                TyperAnimatedText('Loading $title...', speed: Duration(milliseconds: 100),)
+                                TyperAnimatedText(
+                                  'Loading $title...',
+                                  speed: Duration(milliseconds: 100),
+                                )
                               ],
                             ),
                           ),
@@ -218,27 +273,28 @@ class _InformationPageState extends State<InformationPage> {
                 );
               }),
             )
+
+          // Otherwise, show bullet points if available
           else if (bulletPoints != null)
-            ...bulletPoints.map(
-                  (point) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("•  ",
-                        style: TextStyle(
-                            fontSize: 14, color: AppColors.surfaceA50)),
-                    Expanded(
-                      child: Text(
-                        point,
-                        style: const TextStyle(
-                            fontSize: 14, color: AppColors.surfaceA50),
+              ...bulletPoints.map(
+                    (point) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("•  ",
+                          style: TextStyle(fontSize: 14, color: AppColors.surfaceA50)),
+                      Expanded(
+                        child: Text(
+                          point,
+                          style: const TextStyle(
+                              fontSize: 14, color: AppColors.surfaceA50),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
         ],
       ),
     );
@@ -259,9 +315,7 @@ class _InformationPageState extends State<InformationPage> {
         backgroundColor: AppColors.surfaceA0.withOpacity(_appBarOpacity),
         elevation: 0,
       ),
-      body: _errorMessage != null
-          ? Center(child: Text(_errorMessage!))
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
         controller: _scrollController,
         child: Padding(
           padding: const EdgeInsets.only(bottom: 80),
@@ -319,7 +373,7 @@ class _InformationPageState extends State<InformationPage> {
                                     fontWeight: FontWeight.bold)),
                             Text(widget.scientificName,
                                 style: const TextStyle(
-                                    fontSize: 16,
+                                    fontSize: 16, fontStyle: FontStyle.italic,
                                     color: AppColors.surfaceA50)),
                           ],
                         ),
@@ -398,25 +452,64 @@ class _InformationPageState extends State<InformationPage> {
           ),
         ),
         padding: const EdgeInsets.all(16.0),
-        child: SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 60),
-            ),
-            onPressed: () {
-              // Handle button press
-            },
-            child: const Text(
-              "Save to My Garden",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                onPressed: () {
+                  if (!_allSectionsLoaded) {
+                    _showLoadingSnackBar();
+                  } else {
+                    // Handle save action
+                  }
+                },
+                child: const Text(
+                  "Save to My Plants",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
-          ),
+            const SizedBox(width: 12),
+            SizedBox(
+              width: 50,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  shape: const CircleBorder(),
+                  backgroundColor: AppColors.primaryDark10,
+                ),
+                onPressed: () {
+                  if (!_allSectionsLoaded) {
+                    _showLoadingSnackBar();
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatPage(
+                          plantName: widget.commonName,
+                          scientificName: widget.scientificName,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: const Icon(
+                  Icons.chat,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
