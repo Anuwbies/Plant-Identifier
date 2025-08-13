@@ -27,7 +27,7 @@ class DjangoApi {
       if (response.statusCode == 201) {
         return {
           'success': true,
-          'message': 'User registered successfully',
+          'message': 'User registered successfullie',
         };
       } else {
         final errors = jsonDecode(response.body);

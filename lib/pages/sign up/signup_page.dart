@@ -66,7 +66,6 @@ class _SignupPageState extends State<SignupPage> {
         final newPasswordError = (errors['password'] as List?)?.first;
         final newConfirmPasswordError = (errors['confirm_password'] as List?)?.first;
 
-        // Only update state if something actually changed
         if (newUsernameError != _usernameError ||
             newEmailError != _emailError ||
             newPasswordError != _passwordError ||
