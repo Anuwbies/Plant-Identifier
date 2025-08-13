@@ -1,7 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-
+import '../../api/django_api.dart';
 import '../sign in/signin_page.dart';
 
 class SignupPage extends StatefulWidget {
@@ -14,6 +15,76 @@ class SignupPage extends StatefulWidget {
 class _SignupPageState extends State<SignupPage> {
   bool _passwordVisible = false;
   bool _confirmPasswordVisible = false;
+
+  String? _usernameError;
+  String? _emailError;
+  String? _passwordError;
+  String? _confirmPasswordError;
+
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _registerUser() async {
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    final result = await DjangoApi.registerUser(
+      username: username,
+      email: email,
+      password: password,
+      confirmPassword: confirmPassword,
+    );
+
+    if (result['success']) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const SigninPage()),
+            (route) => false,
+      );
+    } else {
+      final errors = result['errors'] as Map<String, dynamic>?;
+
+      if (errors != null) {
+        final newUsernameError = (errors['username'] as List?)?.first;
+        final newEmailError = (errors['email'] as List?)?.first;
+        final newPasswordError = (errors['password'] as List?)?.first;
+        final newConfirmPasswordError = (errors['confirm_password'] as List?)?.first;
+
+        // Only update state if something actually changed
+        if (newUsernameError != _usernameError ||
+            newEmailError != _emailError ||
+            newPasswordError != _passwordError ||
+            newConfirmPasswordError != _confirmPasswordError) {
+          setState(() {
+            _usernameError = newUsernameError;
+            _emailError = newEmailError;
+            _passwordError = newPasswordError;
+            _confirmPasswordError = newConfirmPasswordError;
+          });
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,36 +107,41 @@ class _SignupPageState extends State<SignupPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
-                      decoration: const InputDecoration(
+                      controller: _usernameController,
+                      decoration: InputDecoration(
                         hintText: 'Username',
-                        prefixIcon: Padding(
+                        prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 10),
                           child: Icon(LucideIcons.userRound300, size: 24),
                         ),
-                        border: OutlineInputBorder(
+                        border: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(30)),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 20),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                        errorText: _usernameError,
                       ),
                     ),
                     const SizedBox(height: 15),
                     TextField(
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
+                      controller: _emailController,
+                      decoration: InputDecoration(
                         hintText: 'Email',
-                        prefixIcon: Padding(
+                        prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 10),
                           child: Icon(LucideIcons.mail300, size: 24),
                         ),
-                        border: OutlineInputBorder(
+                        border: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(30)),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 20),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                        errorText: _emailError,
                       ),
                     ),
                     const SizedBox(height: 15),
                     TextField(
                       obscureText: !_passwordVisible,
+                      controller: _passwordController,
                       decoration: InputDecoration(
                         hintText: 'Password',
                         prefixIcon: const Padding(
@@ -90,11 +166,13 @@ class _SignupPageState extends State<SignupPage> {
                           borderRadius: BorderRadius.all(Radius.circular(30)),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                        errorText: _passwordError,
                       ),
                     ),
                     const SizedBox(height: 15),
                     TextField(
                       obscureText: !_confirmPasswordVisible,
+                      controller: _confirmPasswordController,
                       decoration: InputDecoration(
                         hintText: 'Confirm Password',
                         prefixIcon: const Padding(
@@ -119,63 +197,50 @@ class _SignupPageState extends State<SignupPage> {
                           borderRadius: BorderRadius.all(Radius.circular(30)),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                        errorText: _confirmPasswordError,
                       ),
                     ),
                   ],
                 ),
                 const Spacer(),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _registerUser,
+                      style: ElevatedButton.styleFrom(minimumSize: const Size(0, 50)),
+                      child: const Text('Sign Up', style: TextStyle(fontSize: 20)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(builder: (context) => const SigninPage()),
-                                  (route) => false, // Remove all previous routes
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(minimumSize: const Size(0, 50)),
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(fontSize: 20),
-                          ),
+                    Text(
+                      'Already have an account?',
+                      style: TextStyle(fontSize: 12, color: AppColors.surfaceA50),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SigninPage()),
+                        );
+                      },
+                      child: Text(
+                        ' Sign In',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primaryA20,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.primaryA20,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Already have an account?',
-                          style: TextStyle(fontSize: 12, color: AppColors.surfaceA50),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const SigninPage()),
-                            );
-                          },
-                          child: Text(
-                            ' Sign In',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.primaryA20,
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColors.primaryA20,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
                   ],
-                ),
+                )
               ],
             ),
           ),

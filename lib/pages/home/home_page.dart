@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
                             return ListView.builder(
-                              itemCount: 10,
+                              itemCount: 20,
                               itemBuilder: (context, index) {
                                 return Card(
                                   shape: RoundedRectangleBorder(
@@ -185,8 +185,7 @@ class _HomePageState extends State<HomePage> {
                                     );
                                   },
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 8, horizontal: 10),
+                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
