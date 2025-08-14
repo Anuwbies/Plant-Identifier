@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
@@ -26,6 +25,24 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
+  void _showCustomSnackbar(String message, {bool success = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: success ? AppColors.primaryDark10 : Colors.redAccent,
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _usernameController.dispose();
@@ -49,9 +66,7 @@ class _SignupPageState extends State<SignupPage> {
     );
 
     if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      _showCustomSnackbar(result['message'], success: true);
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const SigninPage()),
@@ -66,6 +81,7 @@ class _SignupPageState extends State<SignupPage> {
         final newPasswordError = (errors['password'] as List?)?.first;
         final newConfirmPasswordError = (errors['confirm_password'] as List?)?.first;
 
+        // Only update UI if something changed
         if (newUsernameError != _usernameError ||
             newEmailError != _emailError ||
             newPasswordError != _passwordError ||
@@ -78,9 +94,7 @@ class _SignupPageState extends State<SignupPage> {
           });
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed')),
-        );
+        _showCustomSnackbar('Registration failed');
       }
     }
   }
