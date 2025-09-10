@@ -1,13 +1,9 @@
-import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-
-import '../../api/plantnet_api.dart';
+import '../../api/efficientnetb3_api.dart';
 import '../information/information_page.dart';
 import '../unknown/unknown_page.dart';
 
@@ -23,8 +19,6 @@ class ScanPage extends StatefulWidget {
 class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   bool _isScanning = true;
-
-  final PlantNetApi _plantNetApi = PlantNetApi();
 
   @override
   void initState() {
@@ -48,9 +42,10 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
         throw Exception('ScanPage only supports FileImage for now');
       }
 
-      final result = await _plantNetApi.identifyPlant(imageFile);
+      // Call Django EfficientNetB3 API
+      final result = await EfficientNetB3Api.predictPlant(imageFile);
 
-      if (result.isEmpty || result['results'] == null || (result['results'] as List).isEmpty) {
+      if (result.containsKey("error")) {
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const UnknownPage()),
@@ -59,36 +54,41 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
         return;
       }
 
-      final firstResult = (result['results'] as List).first;
-      final species = firstResult['species'];
+      final sampleImageUrl = result["sample_image"] ?? "";
+      final predictedIndex = result["predicted_index"] ?? -1;
+      final commonName = result["common_name"] ?? "Unknown";
+      final scientificName = result["scientific_name"] ?? "Unknown";
+      final confidence = (result["confidence"] ?? 0.0) * 100;
 
-      final commonName = species['commonNames'] != null &&
-          (species['commonNames'] as List).isNotEmpty
-          ? species['commonNames'][0]
-          : 'Unknown';
+      // Print in console
+      print("Sample image URL: $sampleImageUrl");
+      print("Predicted index: $predictedIndex");
+      print("Common name: $commonName");
+      print("Scientific name: $scientificName");
+      print("Confidence level: ${confidence.toStringAsFixed(2)}%");
 
-      final scientificName =
-          species['scientificNameWithoutAuthor'] ?? 'Unknown';
-
-      // Correctly extract the image URL string from nested url object
-      final imageUrl = firstResult['images'] != null &&
-          (firstResult['images'] as List).isNotEmpty
-          ? (firstResult['images'][0]['url'] != null
-          ? firstResult['images'][0]['url']['o'] ?? ''
-          : '')
-          : '';
-
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => InformationPage(
-              imageUrl: imageUrl,
-              commonName: commonName,
-              scientificName: scientificName,
+      if (confidence < 60.0) {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const UnknownPage()),
+          );
+        }
+      } else {
+        // Otherwise, go to InformationPage
+        if (mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (_) => InformationPage(
+                imageUrl: sampleImageUrl.isNotEmpty ? sampleImageUrl : imageFile!.path,
+                predictedIndex: predictedIndex,
+                commonName: commonName,
+                scientificName: scientificName,
+                confidence: confidence,
+              ),
             ),
-          ),
-              (Route<dynamic> route) => route.isFirst,
-        );
+                (Route<dynamic> route) => route.isFirst,
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -98,6 +98,7 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
       }
     } finally {
       _controller.stop();
+      setState(() => _isScanning = false);
     }
   }
 
@@ -154,8 +155,7 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
                   "Analyzing image...",
                   style: TextStyle(fontSize: 16),
                 ),
-              ] else
-                const SizedBox.shrink(),
+              ],
             ],
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_projects/pages/account/account_page.dart';
 import 'package:flutter_projects/pages/garden/garden_page.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../home/home_page.dart';
@@ -9,7 +10,7 @@ class NavbarPageModel {
   final List<Widget> pages = const [
     HomePage(),
     GardenPage(),
-    Center(child: Text('Account')),
+    AccountPage(),
   ];
 
   final List<BottomNavigationBarItem> bottomNavItems = const [

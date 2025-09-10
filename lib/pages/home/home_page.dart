@@ -82,6 +82,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
+            SizedBox(height: 5),
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
@@ -180,6 +181,8 @@ class _HomePageState extends State<HomePage> {
                                           imageUrl: plant.imageUrl,
                                           commonName: plant.commonName,
                                           scientificName: plant.scientificName,
+                                          confidence: 100.0,
+                                          predictedIndex: index,
                                         ),
                                       ),
                                     );

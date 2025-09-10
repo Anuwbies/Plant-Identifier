@@ -89,9 +89,10 @@ class _SigninPageState extends State<SigninPage> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
+                            Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(builder: (_) => const NavbarPage()),
+                                  (Route<dynamic> route) => false,
                             );
                           },
                           style: ElevatedButton.styleFrom(minimumSize: const Size(0, 50)),

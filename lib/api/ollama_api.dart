@@ -6,7 +6,6 @@ class OllamaApi {
 
   const OllamaApi({this.baseUrl = 'http://192.168.100.4:11434'});
 
-  /// Send a prompt and get the full response (non-streaming)
   Future<String> sendPrompt({
     required String model,
     required String prompt,
@@ -33,7 +32,6 @@ class OllamaApi {
     }
   }
 
-  /// Stream a response token by token
   Stream<String> streamPrompt({
     required String model,
     required String prompt,
@@ -52,9 +50,7 @@ class OllamaApi {
     final streamedResponse = await client.send(request);
 
     if (streamedResponse.statusCode == 200) {
-      // Listen to chunks of the response
       await for (var chunk in streamedResponse.stream.transform(utf8.decoder)) {
-        // Ollama streams may be newline-delimited JSON, handle each line
         for (var line in chunk.split('\n')) {
           if (line.trim().isEmpty) continue;
           try {
@@ -63,7 +59,6 @@ class OllamaApi {
               yield data['response'].toString();
             }
           } catch (_) {
-            // skip invalid JSON
           }
         }
       }

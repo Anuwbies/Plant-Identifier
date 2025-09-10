@@ -1,23 +1,26 @@
+import 'dart:io';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:flutter_projects/color/app_colors.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../api/ollama_api.dart';
-import '../chat/chat_page.dart';
 import '../chat/chat_page.dart';
 
 class InformationPage extends StatefulWidget {
   final String imageUrl;
+  final int predictedIndex;
   final String commonName;
   final String scientificName;
+  final double confidence;
 
   const InformationPage({
     super.key,
     required this.imageUrl,
+    required this.predictedIndex,
     required this.commonName,
     required this.scientificName,
+    required this.confidence,
   });
 
   @override
@@ -27,6 +30,10 @@ class InformationPage extends StatefulWidget {
 class _InformationPageState extends State<InformationPage> {
   final ScrollController _scrollController = ScrollController();
   double _appBarOpacity = 0.0;
+
+  late final String fullImageUrl = widget.imageUrl.startsWith("/media")
+  ? "http://192.168.100.4:8000${widget.imageUrl}"
+  : widget.imageUrl;
 
   final GlobalKey _medicalKey = GlobalKey();
   final GlobalKey _culinaryKey = GlobalKey();
@@ -106,17 +113,17 @@ class _InformationPageState extends State<InformationPage> {
   Future<void> _fetchAllSections() async {
     final Map<String, String> prompts = {
       'Medical Use':
-      "List 3 short points describing the medicinal uses of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      "Medical use of ${widget.commonName} (${widget.scientificName}).",
       'Culinary Use':
-      "List 3 short points describing the culinary uses of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      "Culinary use of ${widget.commonName} (${widget.scientificName}).",
       'Cultural Significance':
-      "List 3 short points describing the cultural or historical significance of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      "Cultural significance of ${widget.commonName} (${widget.scientificName}).",
       'Safety & Toxicity':
-      "List 3 short points describing the safety concerns or toxicity of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      "Safety and toxicity information of ${widget.commonName} (${widget.scientificName}).",
       'Ecological Role':
-      "List 3 short bullet points describing the ecological role of ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      "Ecological role of ${widget.commonName} (${widget.scientificName}).",
       'Cultivation Tips':
-      "List 3 short points giving cultivation and care tips for ${widget.commonName} (${widget.scientificName}). each under 20 words, no bullets, no extra text.",
+      "Cultivation tips for ${widget.commonName} (${widget.scientificName}).",
     };
 
     for (final entry in prompts.entries) {
@@ -131,7 +138,7 @@ class _InformationPageState extends State<InformationPage> {
 
     try {
       final response = await _ollamaApi.sendPrompt(
-        model: 'llama3.2:1b',
+        model: 'plant-llm',
         prompt: prompt,
       );
 
@@ -139,7 +146,7 @@ class _InformationPageState extends State<InformationPage> {
 
       final points = response
           .split('\n')
-          .map((line) => line.replaceFirst(RegExp(r'^[-•\\d.]+\\s*'), '').trim())
+          .map((line) => line.replaceFirst(RegExp(r'^[-•\d.]+\s*'), '').trim())
           .where((line) => line.isNotEmpty)
           .toList();
 
@@ -326,20 +333,8 @@ class _InformationPageState extends State<InformationPage> {
                 height: 300,
                 width: double.infinity,
                 child: Image.network(
-                  widget.imageUrl,
+                  fullImageUrl,
                   fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    } else {
-                      return Center(
-                        child: LoadingAnimationWidget.beat(
-                          color: AppColors.primaryDark10,
-                          size: 40,
-                        ),
-                      );
-                    }
-                  },
                   errorBuilder: (context, error, stackTrace) {
                     return const Center(child: Icon(Icons.broken_image, size: 50));
                   },
@@ -375,6 +370,12 @@ class _InformationPageState extends State<InformationPage> {
                                 style: const TextStyle(
                                     fontSize: 16, fontStyle: FontStyle.italic,
                                     color: AppColors.surfaceA50)),
+                            Text(
+                              "Confidence: ${widget.confidence.toStringAsFixed(2)}%",
+                              style: const TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.surfaceA50),
+                            ),
                           ],
                         ),
                       ),

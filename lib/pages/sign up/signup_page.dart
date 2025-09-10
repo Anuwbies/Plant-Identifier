@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../api/django_api.dart';
+import '../../api/register_api.dart';
 import '../sign in/signin_page.dart';
 
 class SignupPage extends StatefulWidget {

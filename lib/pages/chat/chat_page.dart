@@ -32,9 +32,9 @@ class _ChatPagesState extends State<ChatPage> {
 
     setState(() {
       _messages.add({'role': 'user', 'text': text});
-      _messages.add({'role': 'bot', 'text': ''}); // placeholder for streaming
+      _messages.add({'role': 'bot', 'text': ''});
       _controller.clear();
-      _isSending = true; // mark as sending
+      _isSending = true;
     });
 
     _scrollToBottom();
