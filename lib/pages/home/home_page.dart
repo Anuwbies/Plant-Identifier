@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../api/trefle_api.dart';
+import '../../api/random_plant_api.dart';
 import '../information/information_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,19 +18,27 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late Future<List<Plant>> _plantsFuture;
   String _headerText = 'Plant Identifier';
+  Timer? _headerTimer;
 
   @override
   void initState() {
     super.initState();
-    _plantsFuture = TrefleApi.getRandomPlants();
+    _plantsFuture = RandomPlantApi.fetchRandomPlants();
 
-    Timer.periodic(const Duration(seconds: 7), (timer) {
+    _headerTimer = Timer.periodic(const Duration(seconds: 7), (timer) {
+      if (!mounted) return;
       setState(() {
         _headerText = _headerText == 'Plant Identifier'
             ? 'Scan and Learn'
             : 'Plant Identifier';
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _headerTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -44,10 +52,13 @@ class _HomePageState extends State<HomePage> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(spacing: 8,
+              child: Row(
+                spacing: 8,
                 children: [
-                  SvgPicture.asset( 'assets/images/logo.svg',
-                    width: 40, height: 40,
+                  SvgPicture.asset(
+                    'assets/images/logo.svg',
+                    width: 40,
+                    height: 40,
                   ),
                   AnimatedStringText(
                     _headerText,
@@ -72,7 +83,7 @@ class _HomePageState extends State<HomePage> {
                     color: AppColors.primaryDark10,
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 const Text(
                   'Random picks for you',
                   style: TextStyle(
@@ -82,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            SizedBox(height: 5),
+            const SizedBox(height: 5),
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
@@ -93,7 +104,8 @@ class _HomePageState extends State<HomePage> {
                       child: FutureBuilder<List<Plant>>(
                         future: _plantsFuture,
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return ListView.builder(
                               itemCount: 20,
                               itemBuilder: (context, index) {
@@ -103,15 +115,19 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   margin: const EdgeInsets.only(bottom: 10),
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 10),
                                     child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius:
+                                          BorderRadius.circular(6),
                                           child: Shimmer.fromColors(
                                             baseColor: AppColors.surfaceA30,
-                                            highlightColor: AppColors.surfaceA40,
+                                            highlightColor:
+                                            AppColors.surfaceA40,
                                             child: Container(
                                               width: 100,
                                               height: 100,
@@ -122,14 +138,18 @@ class _HomePageState extends State<HomePage> {
                                         const SizedBox(width: 11),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                             children: [
                                               const SizedBox(height: 6),
                                               Shimmer.fromColors(
-                                                baseColor: AppColors.surfaceA30,
-                                                highlightColor: AppColors.surfaceA50,
+                                                baseColor:
+                                                AppColors.surfaceA30,
+                                                highlightColor:
+                                                AppColors.surfaceA50,
                                                 child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(2),
+                                                  borderRadius:
+                                                  BorderRadius.circular(2),
                                                   child: Container(
                                                     height: 14,
                                                     width: 180,
@@ -139,10 +159,13 @@ class _HomePageState extends State<HomePage> {
                                               ),
                                               const SizedBox(height: 14),
                                               Shimmer.fromColors(
-                                                baseColor: AppColors.surfaceA30,
-                                                highlightColor: AppColors.surfaceA50,
+                                                baseColor:
+                                                AppColors.surfaceA30,
+                                                highlightColor:
+                                                AppColors.surfaceA50,
                                                 child: ClipRRect(
-                                                  borderRadius: BorderRadius.circular(2),
+                                                  borderRadius:
+                                                  BorderRadius.circular(2),
                                                   child: Container(
                                                     height: 13,
                                                     width: 140,
@@ -161,7 +184,26 @@ class _HomePageState extends State<HomePage> {
                             );
                           }
 
+                          if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                  "Error: ${snapshot.error.toString()}"),
+                            );
+                          }
+
+                          if (!snapshot.hasData) {
+                            return const Center(
+                              child: Text("No plants available"),
+                            );
+                          }
+
                           final plants = snapshot.data!;
+
+                          // Debug print the random plants
+                          for (var plant in plants) {
+                            print(
+                                "Common Name: ${plant.commonName}, Scientific Name: ${plant.scientificName}, Image: ${plant.sampleImage}");
+                          }
 
                           return ListView.builder(
                             itemCount: plants.length,
@@ -178,7 +220,8 @@ class _HomePageState extends State<HomePage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => InformationPage(
-                                          imageUrl: plant.imageUrl,
+                                          imageUrl:
+                                          "${RandomPlantApi.baseUrl}${plant.sampleImage}",
                                           commonName: plant.commonName,
                                           scientificName: plant.scientificName,
                                           confidence: 100.0,
@@ -188,21 +231,24 @@ class _HomePageState extends State<HomePage> {
                                     );
                                   },
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 10),
                                     child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                      CrossAxisAlignment.start,
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius:
+                                          BorderRadius.circular(6),
                                           child: Container(
                                             color: AppColors.surfaceA30,
                                             child: Image.network(
-                                              plant.imageUrl,
+                                              "${RandomPlantApi.baseUrl}${plant.sampleImage}",
                                               width: 100,
                                               height: 100,
                                               fit: BoxFit.cover,
-                                              errorBuilder:
-                                                  (context, error, stackTrace) =>
+                                              errorBuilder: (context, error,
+                                                  stackTrace) =>
                                                   Image.asset(
                                                     'lib/images/plant_logo.png',
                                                     width: 100,
@@ -215,12 +261,14 @@ class _HomePageState extends State<HomePage> {
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 plant.commonName,
                                                 style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
+                                                    fontWeight:
+                                                    FontWeight.bold,
                                                     fontSize: 16),
                                               ),
                                               const SizedBox(height: 4),
@@ -228,7 +276,8 @@ class _HomePageState extends State<HomePage> {
                                                 plant.scientificName,
                                                 style: const TextStyle(
                                                     fontSize: 14,
-                                                    fontStyle: FontStyle.italic),
+                                                    fontStyle:
+                                                    FontStyle.italic),
                                               ),
                                             ],
                                           ),

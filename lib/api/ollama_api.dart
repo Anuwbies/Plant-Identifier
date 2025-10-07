@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class OllamaApi {
   final String baseUrl;
 
-  const OllamaApi({this.baseUrl = 'http://192.168.100.4:11434'});
+  const OllamaApi({this.baseUrl = 'http://10.0.2.2:11434'});
 
   Future<String> sendPrompt({
     required String model,

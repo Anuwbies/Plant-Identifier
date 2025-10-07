@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../sign in/signin_page.dart';
+import '../log in/login_page.dart';
 
 class SignupPageModel{
 

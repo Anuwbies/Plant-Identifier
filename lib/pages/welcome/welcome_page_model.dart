@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../sign in/signin_page.dart';
+import '../log in/login_page.dart';
 import '../sign up/signup_page.dart';
 
 class WelcomePageModel {
@@ -13,7 +13,7 @@ class WelcomePageModel {
   void goToSignin(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => SigninPage()),
+      MaterialPageRoute(builder: (context) => LoginPage()),
     );
   }
 }

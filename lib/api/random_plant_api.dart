@@ -1,46 +1,42 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-// Model for Plant
 class Plant {
-  final String speciesId;
   final String commonName;
   final String scientificName;
-  final String? sampleImage;
+  final String sampleImage;
 
   Plant({
-    required this.speciesId,
     required this.commonName,
     required this.scientificName,
-    this.sampleImage,
+    required this.sampleImage,
   });
 
   factory Plant.fromJson(Map<String, dynamic> json) {
     return Plant(
-      speciesId: json['species_id'],
-      commonName: json['common_name'],
-      scientificName: json['scientific_name'],
-      sampleImage: json['sample_image'],
+      commonName: json['common_name'] ?? 'Unknown',
+      scientificName: json['scientific_name'] ?? 'Unknown',
+      sampleImage: json['sample_image'] ?? 'Not available',
     );
   }
 }
 
-// API class to fetch random plants
 class RandomPlantApi {
-  final String baseUrl;
+  static const String baseUrl = "http://10.0.2.2:8000";
 
-  RandomPlantApi({required this.baseUrl});
-
-  Future<List<Plant>> fetchRandomPlants() async {
-    final url = Uri.parse('$baseUrl/api/random-plants/');
+  static Future<List<Plant>> fetchRandomPlants() async {
+    final url = Uri.parse("$baseUrl/random-plants/");
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      final plantsJson = data['plants'] as List;
-      return plantsJson.map((json) => Plant.fromJson(json)).toList();
+
+      // API returns {"plants": [...]}
+      final List<dynamic> plantsJson = data['plants'];
+
+      return plantsJson.map((plant) => Plant.fromJson(plant)).toList();
     } else {
-      throw Exception('Failed to fetch random plants');
+      throw Exception("Failed to load random plants: ${response.statusCode}");
     }
   }
 }

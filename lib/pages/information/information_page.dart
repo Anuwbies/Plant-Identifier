@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
@@ -32,7 +31,7 @@ class _InformationPageState extends State<InformationPage> {
   double _appBarOpacity = 0.0;
 
   late final String fullImageUrl = widget.imageUrl.startsWith("/media")
-  ? "http://192.168.100.4:8000${widget.imageUrl}"
+  ? "http://10.0.2.2:8000${widget.imageUrl}"
   : widget.imageUrl;
 
   final GlobalKey _medicalKey = GlobalKey();
@@ -138,7 +137,7 @@ class _InformationPageState extends State<InformationPage> {
 
     try {
       final response = await _ollamaApi.sendPrompt(
-        model: 'plant-llm',
+        model: 'Allen_Rodas11/llama3-plant:latest',
         prompt: prompt,
       );
 
@@ -320,6 +319,7 @@ class _InformationPageState extends State<InformationPage> {
               size: 28, color: AppColors.surfaceA80),
         ),
         backgroundColor: AppColors.surfaceA0.withOpacity(_appBarOpacity),
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
       body: SingleChildScrollView(

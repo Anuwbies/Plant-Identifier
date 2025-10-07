@@ -1,84 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/user_auth_api.dart';
-import '../log in/login_page.dart';
+import '../navbar/navbar_page.dart';
+import '../sign up/signup_page.dart';
 
-class SignupPage extends StatefulWidget {
-  const SignupPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<SignupPage> createState() => _SignupPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _SignupPageState extends State<SignupPage> {
+class _LoginPageState extends State<LoginPage> {
   bool _passwordVisible = false;
-  bool _confirmPasswordVisible = false;
-
-  String? _usernameError;
-  String? _emailError;
-  String? _passwordError;
-  String? _confirmPasswordError;
-
-  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
+  String? _emailError;
+  String? _passwordError;
+
+  Future<void> _saveUserData(Map<String, dynamic> user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', user['username'] ?? '');
+    await prefs.setString('email', user['email'] ?? '');
+    await prefs.setString('joined_date', user['joined_date'] ?? '');
   }
 
-  Future<void> _registerUser() async {
-    final username = _usernameController.text.trim();
+  void _loginUser() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
 
-    final result = await UserAuthApi.registerUser(
-      username: username,
-      email: email,
-      password: password,
-      confirmPassword: confirmPassword,
-    );
+    final result = await UserAuthApi.loginUser(email: email, password: password);
 
     if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      final user = result['user'];
+      if (user != null) {
+        await _saveUserData(user);
+      }
+
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
+        MaterialPageRoute(builder: (_) => const NavbarPage()),
             (route) => false,
       );
     } else {
       final errors = result['errors'] as Map<String, dynamic>?;
 
       if (errors != null) {
-        final newUsernameError = (errors['username'] as List?)?.first;
         final newEmailError = (errors['email'] as List?)?.first;
         final newPasswordError = (errors['password'] as List?)?.first;
-        final newConfirmPasswordError = (errors['confirm_password'] as List?)?.first;
 
-        if (newUsernameError != _usernameError ||
-            newEmailError != _emailError ||
-            newPasswordError != _passwordError ||
-            newConfirmPasswordError != _confirmPasswordError) {
+        if (newEmailError != _emailError || newPasswordError != _passwordError) {
           setState(() {
-            _usernameError = newUsernameError;
             _emailError = newEmailError;
             _passwordError = newPasswordError;
-            _confirmPasswordError = newConfirmPasswordError;
           });
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed')),
+          SnackBar(content: Text(result['message'] ?? 'Login failed')),
         );
       }
     }
@@ -97,7 +79,7 @@ class _SignupPageState extends State<SignupPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  "Sign Up",
+                  "Log In",
                   style: TextStyle(color: AppColors.primaryA0, fontSize: 40),
                 ),
                 const SizedBox(height: 50),
@@ -105,29 +87,13 @@ class _SignupPageState extends State<SignupPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(
-                        hintText: 'Username',
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.only(left: 10),
-                          child: Icon(LucideIcons.userRound300, size: 24),
-                        ),
-                        border: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-                        errorText: _usernameError,
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    TextField(
-                      keyboardType: TextInputType.emailAddress,
                       controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         hintText: 'Email',
                         prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 10),
-                          child: Icon(LucideIcons.mail300, size: 24),
+                          child: Icon(LucideIcons.mail, size: 24),
                         ),
                         border: const OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -138,13 +104,13 @@ class _SignupPageState extends State<SignupPage> {
                     ),
                     const SizedBox(height: 15),
                     TextField(
-                      obscureText: !_passwordVisible,
                       controller: _passwordController,
+                      obscureText: !_passwordVisible,
                       decoration: InputDecoration(
                         hintText: 'Password',
                         prefixIcon: const Padding(
                           padding: EdgeInsets.only(left: 10),
-                          child: Icon(LucideIcons.lock300, size: 24),
+                          child: Icon(LucideIcons.lockKeyhole, size: 24),
                         ),
                         suffixIcon: GestureDetector(
                           onTap: () {
@@ -155,7 +121,7 @@ class _SignupPageState extends State<SignupPage> {
                           child: Padding(
                             padding: const EdgeInsets.only(right: 10),
                             child: Icon(
-                              _passwordVisible ? LucideIcons.eyeOff300 : LucideIcons.eye300,
+                              _passwordVisible ? LucideIcons.eyeOff : LucideIcons.eye,
                               size: 24,
                             ),
                           ),
@@ -167,37 +133,6 @@ class _SignupPageState extends State<SignupPage> {
                         errorText: _passwordError,
                       ),
                     ),
-                    const SizedBox(height: 15),
-                    TextField(
-                      obscureText: !_confirmPasswordVisible,
-                      controller: _confirmPasswordController,
-                      decoration: InputDecoration(
-                        hintText: 'Confirm Password',
-                        prefixIcon: const Padding(
-                          padding: EdgeInsets.only(left: 10),
-                          child: Icon(LucideIcons.lockKeyhole300, size: 24),
-                        ),
-                        suffixIcon: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _confirmPasswordVisible = !_confirmPasswordVisible;
-                            });
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Icon(
-                              _confirmPasswordVisible ? LucideIcons.eyeOff300 : LucideIcons.eye300,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                        border: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(30)),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-                        errorText: _confirmPasswordError,
-                      ),
-                    ),
                   ],
                 ),
                 const Spacer(),
@@ -206,9 +141,12 @@ class _SignupPageState extends State<SignupPage> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _registerUser,
+                      onPressed: _loginUser,
                       style: ElevatedButton.styleFrom(minimumSize: const Size(0, 50)),
-                      child: const Text('Sign Up', style: TextStyle(fontSize: 20)),
+                      child: const Text(
+                        'Log In',
+                        style: TextStyle(fontSize: 20),
+                      ),
                     ),
                   ),
                 ),
@@ -217,18 +155,18 @@ class _SignupPageState extends State<SignupPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Already have an account? ',
+                      "Don't Have an account?",
                       style: TextStyle(fontSize: 12, color: AppColors.surfaceA50),
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(
+                        Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                          MaterialPageRoute(builder: (_) => const SignupPage()),
                         );
                       },
                       child: Text(
-                        'Log In',
+                        ' Sign Up',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.primaryA20,
@@ -236,7 +174,7 @@ class _SignupPageState extends State<SignupPage> {
                           decorationColor: AppColors.primaryA20,
                         ),
                       ),
-                    ),
+                    )
                   ],
                 )
               ],

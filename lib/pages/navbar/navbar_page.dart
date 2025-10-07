@@ -32,21 +32,23 @@ class _NavbarPageState extends State<NavbarPage> {
   Widget build(BuildContext context) {
     return Scaffold(extendBody: true, resizeToAvoidBottomInset: false,
       body: _model.pages[_model.selectedIndex],
-      bottomNavigationBar: SizedBox( height: 65,
+      bottomNavigationBar: SizedBox( height: 55,
         child: StylishBottomBar(
-          option: AnimatedBarOptions( iconSize: 20, barAnimation: BarAnimation.fade, iconStyle: IconStyle.Default,
+          option: DotBarOptions( iconSize: 22, dotStyle: DotStyle.tile,
           ),
           items: [
             BottomBarItem( icon: const Icon(LucideIcons.house400), title: const Text('Home', style: TextStyle(fontSize: 12)), selectedColor: AppColors.primaryDark10, unSelectedColor: AppColors.surfaceA50
             ),
             BottomBarItem( icon: const Icon(LucideIcons.sprout400), title: const Text('Garden', style: TextStyle(fontSize: 12)), selectedColor: AppColors.primaryDark10, unSelectedColor: AppColors.surfaceA50
             ),
+            BottomBarItem( icon: const Icon(LucideIcons.botMessageSquare400), title: const Text('Chat-bot', style: TextStyle(fontSize: 12)), selectedColor: AppColors.primaryDark10, unSelectedColor: AppColors.surfaceA50
+            ),
             BottomBarItem( icon: const Icon(LucideIcons.userRound400), title: const Text('Account', style: TextStyle(fontSize: 12)), selectedColor: AppColors.primaryDark10, unSelectedColor: AppColors.surfaceA50
             ),
           ],
           fabLocation: StylishBarFabLocation.end,
+          notchStyle: NotchStyle.square,
           hasNotch: true,
-          notchStyle: NotchStyle.circle,
           backgroundColor: AppColors.surfaceA10.withAlpha(179),
           currentIndex: _model.selectedIndex,
           onTap: _onTabSelected,
@@ -55,7 +57,6 @@ class _NavbarPageState extends State<NavbarPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primaryDark10,
-        shape: const CircleBorder(),
         onPressed: _onCameraPressed,
         child: const Icon(Icons.camera_alt_rounded, color: AppColors.surfaceA80, size: 28,),
       ),

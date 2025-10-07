@@ -49,6 +49,9 @@ dependencies:
   animated_card: ^2.0.0
   shimmer: ^3.0.0
   animated_text_lerp: ^2.0.0
+  persistent_bottom_nav_bar: ^6.2.1
+  persistent_bottom_nav_bar_v2: ^6.1.0
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
