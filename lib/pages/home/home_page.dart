@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:animated_text_lerp/animated_text_lerp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
@@ -50,6 +49,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
+            // Header section
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
@@ -73,6 +73,8 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
+
+            // Title
             Row(
               children: [
                 const Text(
@@ -94,6 +96,8 @@ class _HomePageState extends State<HomePage> {
               ],
             ),
             const SizedBox(height: 5),
+
+            // Plant list
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(6),
@@ -106,92 +110,18 @@ class _HomePageState extends State<HomePage> {
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return ListView.builder(
-                              itemCount: 20,
-                              itemBuilder: (context, index) {
-                                return Card(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  margin: const EdgeInsets.only(bottom: 10),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 8, horizontal: 10),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius:
-                                          BorderRadius.circular(6),
-                                          child: Shimmer.fromColors(
-                                            baseColor: AppColors.surfaceA30,
-                                            highlightColor:
-                                            AppColors.surfaceA40,
-                                            child: Container(
-                                              width: 100,
-                                              height: 100,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 11),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(height: 6),
-                                              Shimmer.fromColors(
-                                                baseColor:
-                                                AppColors.surfaceA30,
-                                                highlightColor:
-                                                AppColors.surfaceA50,
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                  BorderRadius.circular(2),
-                                                  child: Container(
-                                                    height: 14,
-                                                    width: 180,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(height: 14),
-                                              Shimmer.fromColors(
-                                                baseColor:
-                                                AppColors.surfaceA30,
-                                                highlightColor:
-                                                AppColors.surfaceA50,
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                  BorderRadius.circular(2),
-                                                  child: Container(
-                                                    height: 13,
-                                                    width: 140,
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
+                            return _buildShimmerList();
                           }
 
                           if (snapshot.hasError) {
                             return Center(
                               child: Text(
-                                  "Error: ${snapshot.error.toString()}"),
+                                "Error: ${snapshot.error.toString()}",
+                              ),
                             );
                           }
 
-                          if (!snapshot.hasData) {
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
                             return const Center(
                               child: Text("No plants available"),
                             );
@@ -199,19 +129,14 @@ class _HomePageState extends State<HomePage> {
 
                           final plants = snapshot.data!;
 
-                          // Debug print the random plants
-                          for (var plant in plants) {
-                            print(
-                                "Common Name: ${plant.commonName}, Scientific Name: ${plant.scientificName}, Image: ${plant.sampleImage}");
-                          }
-
                           return ListView.builder(
                             itemCount: plants.length,
                             itemBuilder: (context, index) {
                               final plant = plants[index];
                               return Card(
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6)),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
                                 margin: const EdgeInsets.only(bottom: 10),
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(6),
@@ -220,12 +145,12 @@ class _HomePageState extends State<HomePage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => InformationPage(
-                                          imageUrl:
-                                          "${RandomPlantApi.baseUrl}${plant.sampleImage}",
+                                          imageUrl: "${RandomPlantApi.baseUrl}${plant.sampleImage}",
                                           commonName: plant.commonName,
                                           scientificName: plant.scientificName,
-                                          confidence: 100.0,
-                                          predictedIndex: index,
+                                          confidence: null, // set to null
+                                          predictedIndex: plant.index,
+                                          speciesId: plant.speciesId,
                                         ),
                                       ),
                                     );
@@ -237,6 +162,7 @@ class _HomePageState extends State<HomePage> {
                                       crossAxisAlignment:
                                       CrossAxisAlignment.start,
                                       children: [
+                                        // Plant image
                                         ClipRRect(
                                           borderRadius:
                                           BorderRadius.circular(6),
@@ -247,8 +173,8 @@ class _HomePageState extends State<HomePage> {
                                               width: 100,
                                               height: 100,
                                               fit: BoxFit.cover,
-                                              errorBuilder: (context, error,
-                                                  stackTrace) =>
+                                              errorBuilder:
+                                                  (context, error, stackTrace) =>
                                                   Image.asset(
                                                     'lib/images/plant_logo.png',
                                                     width: 100,
@@ -259,6 +185,8 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         ),
                                         const SizedBox(width: 10),
+
+                                        // Plant details
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment:
@@ -267,17 +195,17 @@ class _HomePageState extends State<HomePage> {
                                               Text(
                                                 plant.commonName,
                                                 style: const TextStyle(
-                                                    fontWeight:
-                                                    FontWeight.bold,
-                                                    fontSize: 16),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
                                                 plant.scientificName,
                                                 style: const TextStyle(
-                                                    fontSize: 14,
-                                                    fontStyle:
-                                                    FontStyle.italic),
+                                                  fontSize: 14,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -299,6 +227,74 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildShimmerList() {
+    return ListView.builder(
+      itemCount: 20,
+      itemBuilder: (context, index) {
+        return Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(6),
+          ),
+          margin: const EdgeInsets.only(bottom: 10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Shimmer.fromColors(
+                    baseColor: AppColors.surfaceA30,
+                    highlightColor: AppColors.surfaceA40,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 6),
+                      Shimmer.fromColors(
+                        baseColor: AppColors.surfaceA30,
+                        highlightColor: AppColors.surfaceA50,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: Container(
+                            height: 14,
+                            width: 180,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Shimmer.fromColors(
+                        baseColor: AppColors.surfaceA30,
+                        highlightColor: AppColors.surfaceA50,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: Container(
+                            height: 13,
+                            width: 140,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

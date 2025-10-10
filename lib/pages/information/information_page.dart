@@ -3,23 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_icon_snackbar/flutter_icon_snackbar.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../api/history_plants_api.dart';
 import '../../api/ollama_api.dart';
+import '../../api/saved_plants_api.dart';
 import '../chat/chat_page.dart';
 
 class InformationPage extends StatefulWidget {
   final String imageUrl;
   final int predictedIndex;
+  final int speciesId;
   final String commonName;
   final String scientificName;
-  final double confidence;
+  final double? confidence;
 
   const InformationPage({
     super.key,
     required this.imageUrl,
     required this.predictedIndex,
+    required this.speciesId,
     required this.commonName,
     required this.scientificName,
-    required this.confidence,
+    this.confidence,
   });
 
   @override
@@ -31,8 +36,8 @@ class _InformationPageState extends State<InformationPage> {
   double _appBarOpacity = 0.0;
 
   late final String fullImageUrl = widget.imageUrl.startsWith("/media")
-  ? "http://10.0.2.2:8000${widget.imageUrl}"
-  : widget.imageUrl;
+      ? "http://10.0.2.2:8000${widget.imageUrl}"
+      : widget.imageUrl;
 
   final GlobalKey _medicalKey = GlobalKey();
   final GlobalKey _culinaryKey = GlobalKey();
@@ -43,12 +48,13 @@ class _InformationPageState extends State<InformationPage> {
 
   final OllamaApi _ollamaApi = OllamaApi();
 
+  bool _isSaving = false; // Add this to your state class
+
   Map<String, List<String>> sectionData = {};
   Map<String, bool> sectionLoading = {};
   String? _errorMessage;
 
   bool _isDisposed = false;
-
   bool _isLoading = true;
 
   bool get _allSectionsLoaded =>
@@ -59,6 +65,20 @@ class _InformationPageState extends State<InformationPage> {
   @override
   void initState() {
     super.initState();
+
+    print('--- Plant Data ---');
+    print('Common Name: ${widget.commonName}');
+    print('Scientific Name: ${widget.scientificName}');
+    print('Species ID: ${widget.speciesId}');
+    print('Predicted Index: ${widget.predictedIndex}');
+    print('Confidence: ${widget.confidence}');
+    print('Image URL: ${widget.imageUrl}');
+    print('-------------------');
+
+    _loadUserId();
+
+    _saveToHistoryAutomatically();
+
     _scrollController.addListener(() {
       double offset = _scrollController.offset;
       double opacity = (offset / 300).clamp(0, 1);
@@ -73,6 +93,29 @@ class _InformationPageState extends State<InformationPage> {
     _fetchAllSections();
   }
 
+  Future<void> _loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('userId') ?? 0;
+    print('--- User Data ---');
+    print('User ID: $userId');
+    print('-------------------');
+  }
+
+  Future<void> _saveToHistoryAutomatically() async {
+    try {
+      await HistoryPlantsApi.saveHistory(
+        speciesId: widget.speciesId,
+        commonName: widget.commonName,
+        scientificName: widget.scientificName,
+        confidence: widget.confidence,
+        imageUrl: widget.imageUrl,
+      );
+      print('Plant automatically saved to history.');
+    } catch (e) {
+      print('Failed to save plant to history automatically: $e');
+    }
+  }
+
   void _showLoadingSnackBar() {
     if (!_snackBarVisible) {
       _snackBarVisible = true;
@@ -81,7 +124,7 @@ class _InformationPageState extends State<InformationPage> {
         duration: const Duration(seconds: 3),
         snackBarType: SnackBarType.fail,
         label: 'Please wait for information to finish',
-        labelTextStyle: TextStyle(color: Colors.white), // sets the text color
+        labelTextStyle: const TextStyle(color: Colors.white),
       );
       Future.delayed(const Duration(seconds: 2), () {
         _snackBarVisible = false;
@@ -89,6 +132,7 @@ class _InformationPageState extends State<InformationPage> {
     }
   }
 
+  @override
   void dispose() {
     _isDisposed = true;
     _scrollController.dispose();
@@ -141,7 +185,7 @@ class _InformationPageState extends State<InformationPage> {
         prompt: prompt,
       );
 
-      if (_isDisposed) return; // page closed, ignore the result
+      if (_isDisposed) return;
 
       final points = response
           .split('\n')
@@ -153,8 +197,14 @@ class _InformationPageState extends State<InformationPage> {
         sectionData[title] = points;
         sectionLoading[title] = false;
       });
+
+      print('--- $title ---');
+      for (var point in points) {
+        print('- $point');
+      }
+      print('-------------------\n');
     } catch (e) {
-      if (_isDisposed) return; // page closed, ignore errors too
+      if (_isDisposed) return;
       setState(() {
         _errorMessage = e.toString();
         sectionLoading[title] = false;
@@ -167,15 +217,22 @@ class _InformationPageState extends State<InformationPage> {
     if (context != null) {
       final box = context.findRenderObject() as RenderBox;
 
-      final scrollableBox = _scrollController.position.context.storageContext.findRenderObject() as RenderBox;
+      final scrollableBox =
+      _scrollController.position.context.storageContext.findRenderObject()
+      as RenderBox;
       final viewportHeight = scrollableBox.size.height;
 
-      final widgetOffset = box.localToGlobal(Offset.zero, ancestor: scrollableBox).dy;
+      final widgetOffset =
+          box.localToGlobal(Offset.zero, ancestor: scrollableBox).dy;
 
-      final targetOffset = _scrollController.offset + widgetOffset - (viewportHeight / 2) + (box.size.height / 2);
+      final targetOffset = _scrollController.offset +
+          widgetOffset -
+          (viewportHeight / 2) +
+          (box.size.height / 2);
 
       _scrollController.animateTo(
-        targetOffset.clamp(_scrollController.position.minScrollExtent, _scrollController.position.maxScrollExtent),
+        targetOffset.clamp(_scrollController.position.minScrollExtent,
+            _scrollController.position.maxScrollExtent),
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOut,
       );
@@ -195,13 +252,15 @@ class _InformationPageState extends State<InformationPage> {
         onTap: onPressed,
         child: Text(
           label,
-          style: const TextStyle(color: AppColors.primaryDark10, fontSize: 14),
+          style:
+          const TextStyle(color: AppColors.primaryDark10, fontSize: 14),
         ),
       ),
     );
   }
 
-  Widget _buildSection(Key key, IconData icon, String title, List<String>? bulletPoints) {
+  Widget _buildSection(Key key, IconData icon, String title,
+      List<String>? bulletPoints) {
     return Container(
       key: key,
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -219,13 +278,12 @@ class _InformationPageState extends State<InformationPage> {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 8),
-
-          // If there's an error, always show "LLM not connected"
           if (_errorMessage != null)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,13 +293,12 @@ class _InformationPageState extends State<InformationPage> {
                 Expanded(
                   child: Text(
                     "LLM not connected",
-                    style: TextStyle(fontSize: 14, color: AppColors.surfaceA50),
+                    style:
+                    TextStyle(fontSize: 14, color: AppColors.surfaceA50),
                   ),
                 ),
               ],
             )
-
-          // If still loading, show loading animation
           else if (sectionLoading[title] == true)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,7 +309,8 @@ class _InformationPageState extends State<InformationPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text("•  ",
-                          style: TextStyle(fontSize: 14, color: AppColors.surfaceA50)),
+                          style: TextStyle(
+                              fontSize: 14, color: AppColors.surfaceA50)),
                       Expanded(
                         child: Align(
                           alignment: Alignment.centerLeft,
@@ -263,11 +321,12 @@ class _InformationPageState extends State<InformationPage> {
                             ),
                             child: AnimatedTextKit(
                               repeatForever: true,
-                              pause: Duration(milliseconds: 500),
+                              pause: const Duration(milliseconds: 500),
                               animatedTexts: [
                                 TyperAnimatedText(
                                   'Loading $title...',
-                                  speed: Duration(milliseconds: 100),
+                                  speed:
+                                  const Duration(milliseconds: 100),
                                 )
                               ],
                             ),
@@ -279,8 +338,6 @@ class _InformationPageState extends State<InformationPage> {
                 );
               }),
             )
-
-          // Otherwise, show bullet points if available
           else if (bulletPoints != null)
               ...bulletPoints.map(
                     (point) => Padding(
@@ -289,7 +346,8 @@ class _InformationPageState extends State<InformationPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text("•  ",
-                          style: TextStyle(fontSize: 14, color: AppColors.surfaceA50)),
+                          style: TextStyle(
+                              fontSize: 14, color: AppColors.surfaceA50)),
                       Expanded(
                         child: Text(
                           point,
@@ -336,15 +394,16 @@ class _InformationPageState extends State<InformationPage> {
                   fullImageUrl,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    return const Center(child: Icon(Icons.broken_image, size: 50));
+                    return const Center(
+                        child: Icon(Icons.broken_image, size: 50));
                   },
                 ),
               ),
-              Container(color: AppColors.surfaceA0,
-                child:
-                Column(
+              Container(
+                color: AppColors.surfaceA0,
+                child: Column(
                   children: [
-                    Padding( // grab icon
+                    Padding(
                       padding: const EdgeInsets.only(top: 10, bottom: 5),
                       child: Container(
                         width: 40,
@@ -355,12 +414,14 @@ class _InformationPageState extends State<InformationPage> {
                         ),
                       ),
                     ),
-                    Align( // plant's name
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 10, right: 10),
+                        padding:
+                        const EdgeInsets.only(left: 10, right: 10),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
                           children: [
                             Text(widget.commonName,
                                 style: const TextStyle(
@@ -368,20 +429,24 @@ class _InformationPageState extends State<InformationPage> {
                                     fontWeight: FontWeight.bold)),
                             Text(widget.scientificName,
                                 style: const TextStyle(
-                                    fontSize: 16, fontStyle: FontStyle.italic,
+                                    fontSize: 16,
+                                    fontStyle: FontStyle.italic,
                                     color: AppColors.surfaceA50)),
-                            Text(
-                              "Confidence: ${widget.confidence.toStringAsFixed(2)}%",
-                              style: const TextStyle(
+                            if (widget.confidence != null)
+                              Text(
+                                "Confidence: ${widget.confidence!.toStringAsFixed(2)}%",
+                                style: const TextStyle(
                                   fontSize: 14,
-                                  color: AppColors.surfaceA50),
-                            ),
+                                  color: AppColors.surfaceA50,
+                                ),
+                              ),
                           ],
                         ),
                       ),
                     ),
-                    Padding( // auto scroll to section
-                      padding: const EdgeInsets.symmetric(vertical: 5),
+                    Padding(
+                      padding:
+                      const EdgeInsets.symmetric(vertical: 5),
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -422,18 +487,21 @@ class _InformationPageState extends State<InformationPage> {
                         ),
                       ),
                     ),
-                    _buildSection(_medicalKey, Icons.local_hospital, 'Medical Use',
-                        sectionData['Medical Use']),
-                    _buildSection(_culinaryKey, Icons.restaurant, 'Culinary Use',
-                        sectionData['Culinary Use']),
-                    _buildSection(_culturalKey, Icons.public, 'Cultural Significance',
+                    _buildSection(_medicalKey, Icons.local_hospital,
+                        'Medical Use', sectionData['Medical Use']),
+                    _buildSection(_culinaryKey, Icons.restaurant,
+                        'Culinary Use', sectionData['Culinary Use']),
+                    _buildSection(
+                        _culturalKey,
+                        Icons.public,
+                        'Cultural Significance',
                         sectionData['Cultural Significance']),
-                    _buildSection(_safetyKey, Icons.warning, 'Safety & Toxicity',
-                        sectionData['Safety & Toxicity']),
+                    _buildSection(_safetyKey, Icons.warning,
+                        'Safety & Toxicity', sectionData['Safety & Toxicity']),
                     _buildSection(_ecologicalKey, Icons.eco, 'Ecological Role',
                         sectionData['Ecological Role']),
-                    _buildSection(_cultivationKey, Icons.grass, 'Cultivation Tips',
-                        sectionData['Cultivation Tips']),
+                    _buildSection(_cultivationKey, Icons.grass,
+                        'Cultivation Tips', sectionData['Cultivation Tips']),
                   ],
                 ),
               ),
@@ -461,11 +529,50 @@ class _InformationPageState extends State<InformationPage> {
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
                 ),
-                onPressed: () {
-                  if (!_allSectionsLoaded) {
-                    _showLoadingSnackBar();
-                  } else {
-                    // Handle save action
+                onPressed: _isSaving
+                    ? null // Disable button while saving
+                    : () async {
+                  if (_isSaving) return;
+                  setState(() => _isSaving = true);
+
+                  try {
+                    await SavedPlantsApi.savePlant(
+                      speciesId: widget.speciesId,
+                      commonName: widget.commonName,
+                      scientificName: widget.scientificName,
+                      confidence: widget.confidence,
+                      imageUrl: widget.imageUrl,
+                    );
+
+                    if (mounted && !_snackBarVisible) {
+                      _snackBarVisible = true;
+                      IconSnackBar.show(
+                        context,
+                        snackBarType: SnackBarType.success,
+                        label: 'Plant saved successfully!',
+                        labelTextStyle: const TextStyle(color: Colors.white),
+                      );
+                      Future.delayed(const Duration(seconds: 2), () {
+                        _snackBarVisible = false;
+                      });
+                    }
+                  } catch (e) {
+                    if (mounted && !_snackBarVisible) {
+                      _snackBarVisible = true;
+                      IconSnackBar.show(
+                        context,
+                        snackBarType: SnackBarType.fail,
+                        label: 'Plant already saved',
+                        labelTextStyle: const TextStyle(color: Colors.white),
+                      );
+                      Future.delayed(const Duration(seconds: 2), () {
+                        _snackBarVisible = false;
+                      });
+                    }
+                  } finally {
+                    if (mounted) {
+                      setState(() => _isSaving = false);
+                    }
                   }
                 },
                 child: const Text(

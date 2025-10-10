@@ -54,19 +54,15 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
         return;
       }
 
+      // Extract data from API response
       final sampleImageUrl = result["sample_image"] ?? "";
       final predictedIndex = result["predicted_index"] ?? -1;
+      final speciesId = result["species_id"] ?? 0;
       final commonName = result["common_name"] ?? "Unknown";
       final scientificName = result["scientific_name"] ?? "Unknown";
       final confidence = (result["confidence"] ?? 0.0) * 100;
 
-      // Print in console
-      print("Sample image URL: $sampleImageUrl");
-      print("Predicted index: $predictedIndex");
-      print("Common name: $commonName");
-      print("Scientific name: $scientificName");
-      print("Confidence level: ${confidence.toStringAsFixed(2)}%");
-
+      // Confidence threshold
       if (confidence < 60.0) {
         if (mounted) {
           Navigator.of(context).pushReplacement(
@@ -74,13 +70,16 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
           );
         }
       } else {
-        // Otherwise, go to InformationPage
+        // Go to InformationPage with speciesId and predictedIndex
         if (mounted) {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (_) => InformationPage(
-                imageUrl: sampleImageUrl.isNotEmpty ? sampleImageUrl : imageFile!.path,
+                imageUrl: sampleImageUrl.isNotEmpty
+                    ? "http://10.0.2.2:8000$sampleImageUrl"
+                    : imageFile!.path,
                 predictedIndex: predictedIndex,
+                speciesId: speciesId,
                 commonName: commonName,
                 scientificName: scientificName,
                 confidence: confidence,

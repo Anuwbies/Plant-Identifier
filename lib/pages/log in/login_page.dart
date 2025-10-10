@@ -23,6 +23,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _saveUserData(Map<String, dynamic> user) async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('userId', user['userId'] ?? 0);
     await prefs.setString('username', user['username'] ?? '');
     await prefs.setString('email', user['email'] ?? '');
     await prefs.setString('joined_date', user['joined_date'] ?? '');
