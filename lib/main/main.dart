@@ -13,7 +13,8 @@ void main() async {
 
   // Check if user data exists in SharedPreferences
   final prefs = await SharedPreferences.getInstance();
-  final hasUserData = prefs.containsKey('username') &&
+  final hasUserData = prefs.containsKey('first_name') &&
+      prefs.containsKey('last_name') &&
       prefs.containsKey('email') &&
       prefs.containsKey('joined_date');
 

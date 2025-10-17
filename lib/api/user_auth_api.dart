@@ -4,8 +4,12 @@ import 'package:http/http.dart' as http;
 class UserAuthApi {
   static const String baseUrl = "http://10.0.2.2:8000";
 
+  //======================================================================
+  // REGISTER USER
+  //======================================================================
   static Future<Map<String, dynamic>> registerUser({
-    required String username,
+    required String firstName,
+    required String lastName,
     required String email,
     required String password,
     required String confirmPassword,
@@ -17,7 +21,8 @@ class UserAuthApi {
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'username': username,
+          'first_name': firstName,
+          'last_name': lastName,
           'email': email,
           'password': password,
           'confirm_password': confirmPassword,
@@ -33,7 +38,7 @@ class UserAuthApi {
         final errors = jsonDecode(response.body);
         return {
           'success': false,
-          'errors': errors, // directly pass the dict
+          'errors': errors, // direct error dict from backend
         };
       }
     } catch (e) {
@@ -44,8 +49,9 @@ class UserAuthApi {
     }
   }
 
-  //======================================================================================================================================================
-
+  //======================================================================
+  // LOGIN USER
+  //======================================================================
   static Future<Map<String, dynamic>> loginUser({
     required String email,
     required String password,

@@ -24,10 +24,12 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _saveUserData(Map<String, dynamic> user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('userId', user['userId'] ?? 0);
-    await prefs.setString('username', user['username'] ?? '');
+    await prefs.setString('first_name', user['first_name'] ?? '');
+    await prefs.setString('last_name', user['last_name'] ?? '');
     await prefs.setString('email', user['email'] ?? '');
     await prefs.setString('joined_date', user['joined_date'] ?? '');
   }
+
 
   void _loginUser() async {
     final email = _emailController.text.trim();
@@ -52,11 +54,15 @@ class _LoginPageState extends State<LoginPage> {
       if (errors != null) {
         final newEmailError = (errors['email'] as List?)?.first;
         final newPasswordError = (errors['password'] as List?)?.first;
+        final generalError = (errors['__all__'] as List?)?.first; // Catch "__all__" error
 
-        if (newEmailError != _emailError || newPasswordError != _passwordError) {
+        // If "__all__" exists, display it as a password error
+        final effectivePasswordError = newPasswordError ?? generalError;
+
+        if (newEmailError != _emailError || effectivePasswordError != _passwordError) {
           setState(() {
             _emailError = newEmailError;
-            _passwordError = newPasswordError;
+            _passwordError = effectivePasswordError;
           });
         }
       } else {
@@ -75,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
         child: Align(
           alignment: Alignment.topCenter,
           child: Padding(
-            padding: const EdgeInsets.only(top: 80, bottom: 130, left: 20, right: 20),
+            padding: const EdgeInsets.only(top: 80, bottom: 50, left: 20, right: 20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

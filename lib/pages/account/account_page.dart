@@ -17,7 +17,8 @@ class AccountPage extends StatefulWidget {
 }
 
 class _AccountPageState extends State<AccountPage> {
-  String displayUsername = "";
+  String firstName = "";
+  String lastName = "";
   String emailText = "";
   String joinedDate = "";
 
@@ -30,19 +31,20 @@ class _AccountPageState extends State<AccountPage> {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final username = prefs.getString('username');
+    final fName = prefs.getString('first_name');
+    final lName = prefs.getString('last_name');
     final email = prefs.getString('email');
     final date = prefs.getString('joined_date');
 
     setState(() {
-      if (username != null && email != null && date != null) {
-        // Logged in user found
-        displayUsername = username;
+      if (fName != null && lName != null && email != null && date != null) {
+        firstName = fName;
+        lastName = lName;
         emailText = email;
         joinedDate = date;
       } else {
-        // No user logged in → show blank
-        displayUsername = "";
+        firstName = "";
+        lastName = "";
         emailText = "";
         joinedDate = "";
       }
@@ -59,6 +61,9 @@ class _AccountPageState extends State<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    final displayName =
+    (firstName.isNotEmpty || lastName.isNotEmpty) ? "$firstName $lastName" : "";
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(50),
@@ -107,10 +112,11 @@ class _AccountPageState extends State<AccountPage> {
                         radius: 55,
                         backgroundColor: getRandomDarkColor(),
                         child: Text(
-                          displayUsername.isNotEmpty
-                              ? displayUsername.length >= 2
-                              ? displayUsername[0].toUpperCase() + displayUsername[1].toLowerCase()
-                              : displayUsername[0].toUpperCase()
+                          (firstName.isNotEmpty || lastName.isNotEmpty)
+                              ? (firstName[0].toUpperCase() +
+                              (lastName.isNotEmpty
+                                  ? lastName[0].toUpperCase()
+                                  : ""))
                               : "",
                           style: const TextStyle(
                             fontSize: 48,
@@ -127,23 +133,15 @@ class _AccountPageState extends State<AccountPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              displayUsername,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -227,8 +225,8 @@ class _AccountPageState extends State<AccountPage> {
                         builder: (context) => AlertDialog(
                           backgroundColor: Colors.black,
                           shape: RoundedRectangleBorder(
-                            side: const BorderSide(
-                                color: Colors.white, width: 2),
+                            side:
+                            const BorderSide(color: Colors.white, width: 2),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           contentPadding:
@@ -247,7 +245,8 @@ class _AccountPageState extends State<AccountPage> {
                               const SizedBox(height: 12),
                               const Text(
                                 'Are you sure you want to log out?',
-                                style: TextStyle(color: AppColors.primaryA50),
+                                style:
+                                TextStyle(color: AppColors.primaryA50),
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 16),
@@ -259,7 +258,8 @@ class _AccountPageState extends State<AccountPage> {
                                         horizontal: 8),
                                     child: TextButton(
                                       style: TextButton.styleFrom(
-                                        backgroundColor: AppColors.surfaceA10,
+                                        backgroundColor:
+                                        AppColors.surfaceA10,
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 24, vertical: 12),
                                         shape: RoundedRectangleBorder(
@@ -279,7 +279,8 @@ class _AccountPageState extends State<AccountPage> {
                                         horizontal: 8),
                                     child: TextButton(
                                       style: TextButton.styleFrom(
-                                        backgroundColor: AppColors.primaryA0,
+                                        backgroundColor:
+                                        AppColors.primaryA0,
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 24, vertical: 12),
                                         shape: RoundedRectangleBorder(
@@ -290,8 +291,7 @@ class _AccountPageState extends State<AccountPage> {
                                       onPressed: () =>
                                           Navigator.pop(context, true),
                                       child: const Text('Log Out',
-                                          style:
-                                          TextStyle(color: Colors.white)),
+                                          style: TextStyle(color: Colors.white)),
                                     ),
                                   ),
                                 ],
@@ -303,7 +303,7 @@ class _AccountPageState extends State<AccountPage> {
 
                       if (confirm == true) {
                         final prefs = await SharedPreferences.getInstance();
-                        await prefs.clear(); // clear stored user data
+                        await prefs.clear();
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
@@ -333,8 +333,8 @@ class _AccountPageState extends State<AccountPage> {
         title,
         style: const TextStyle(color: Colors.white, fontSize: 14),
       ),
-      trailing: const Icon(Icons.arrow_forward_ios,
-          color: Colors.white70, size: 14),
+      trailing:
+      const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 14),
       onTap: onTap,
     );
   }
