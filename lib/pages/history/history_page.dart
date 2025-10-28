@@ -1,37 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_projects/api/history_plants_api.dart';
 import 'package:flutter_projects/color/app_colors.dart';
-import '../information/information_page.dart'; // adjust import path if needed
+import 'package:provider/provider.dart';
+import 'package:flutter_projects/pages/information/information_page.dart';
+import 'history_page_model.dart';
 
-class HistoryPage extends StatefulWidget {
+class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 
   @override
-  State<HistoryPage> createState() => _HistoryPageState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => HistoryPageModel(),
+      child: const _HistoryPageView(),
+    );
+  }
 }
 
-class _HistoryPageState extends State<HistoryPage> {
-  late Future<List<dynamic>> _futureHistory;
-
-  @override
-  void initState() {
-    super.initState();
-    _futureHistory = HistoryPlantsApi.fetchHistory();
-  }
-
-  Future<void> _refreshHistory() async {
-    setState(() {
-      _futureHistory = HistoryPlantsApi.fetchHistory();
-    });
-  }
+class _HistoryPageView extends StatelessWidget {
+  const _HistoryPageView();
 
   @override
   Widget build(BuildContext context) {
+    final model = Provider.of<HistoryPageModel>(context);
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
         child: FutureBuilder<List<dynamic>>(
-          future: _futureHistory,
+          future: model.futureHistory,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -55,7 +51,7 @@ class _HistoryPageState extends State<HistoryPage> {
             final history = snapshot.data!;
 
             return RefreshIndicator(
-              onRefresh: _refreshHistory,
+              onRefresh: model.refreshHistory,
               child: ListView.builder(
                 padding: const EdgeInsets.only(bottom: 85),
                 itemCount: history.length,
@@ -130,16 +126,18 @@ class _HistoryPageState extends State<HistoryPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    commonName, maxLines: 1,
+                                    commonName,
+                                    maxLines: 1,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
-                                      overflow: TextOverflow.ellipsis
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    scientificName, maxLines: 1,
+                                    scientificName,
+                                    maxLines: 1,
                                     style: const TextStyle(
                                       fontSize: 14,
                                       overflow: TextOverflow.ellipsis,
@@ -153,9 +151,7 @@ class _HistoryPageState extends State<HistoryPage> {
                               icon: const Icon(Icons.delete,
                                   color: Colors.redAccent),
                               onPressed: () async {
-                                await HistoryPlantsApi.deleteHistory(
-                                    plant['id']);
-                                _refreshHistory();
+                                await model.deletePlant(plant['id']);
                               },
                             ),
                           ],

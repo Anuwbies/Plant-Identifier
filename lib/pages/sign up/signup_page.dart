@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_projects/color/app_colors.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../api/user_auth_api.dart';
-import '../log in/login_page.dart';
+import 'package:flutter_projects/color/app_colors.dart';
+import 'signup_page_model.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -12,79 +11,12 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  bool _passwordVisible = false;
-  bool _confirmPasswordVisible = false;
-
-  String? _firstNameError;
-  String? _lastNameError;
-  String? _emailError;
-  String? _passwordError;
-  String? _confirmPasswordError;
-
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final SignupPageModel model = SignupPageModel();
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    model.dispose();
     super.dispose();
-  }
-
-  Future<void> _registerUser() async {
-    final firstName = _firstNameController.text.trim();
-    final lastName = _lastNameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
-
-    final result = await UserAuthApi.registerUser(
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      password: password,
-      confirmPassword: confirmPassword,
-    );
-
-    if (result['success']) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-            (route) => false,
-      );
-    } else {
-      final errors = result['errors'] as Map<String, dynamic>?;
-
-      if (errors != null) {
-        final newFirstNameError = (errors['first_name'] as List?)?.first;
-        final newLastNameError = (errors['last_name'] as List?)?.first;
-        final newEmailError = (errors['email'] as List?)?.first;
-        final newPasswordError = (errors['password'] as List?)?.first;
-        final newConfirmPasswordError =
-            (errors['confirm_password'] as List?)?.first;
-
-        setState(() {
-          _firstNameError = newFirstNameError;
-          _lastNameError = newLastNameError;
-          _emailError = newEmailError;
-          _passwordError = newPasswordError;
-          _confirmPasswordError = newConfirmPasswordError;
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration failed')),
-        );
-      }
-    }
   }
 
   @override
@@ -109,7 +41,7 @@ class _SignupPageState extends State<SignupPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
-                      controller: _firstNameController,
+                      controller: model.firstNameController,
                       decoration: InputDecoration(
                         hintText: 'First Name',
                         prefixIcon: const Padding(
@@ -121,12 +53,12 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         contentPadding:
                         const EdgeInsets.symmetric(horizontal: 20),
-                        errorText: _firstNameError,
+                        errorText: model.firstNameError,
                       ),
                     ),
                     const SizedBox(height: 15),
                     TextField(
-                      controller: _lastNameController,
+                      controller: model.lastNameController,
                       decoration: InputDecoration(
                         hintText: 'Last Name',
                         prefixIcon: const Padding(
@@ -138,13 +70,13 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         contentPadding:
                         const EdgeInsets.symmetric(horizontal: 20),
-                        errorText: _lastNameError,
+                        errorText: model.lastNameError,
                       ),
                     ),
                     const SizedBox(height: 15),
                     TextField(
                       keyboardType: TextInputType.emailAddress,
-                      controller: _emailController,
+                      controller: model.emailController,
                       decoration: InputDecoration(
                         hintText: 'Email',
                         prefixIcon: const Padding(
@@ -156,13 +88,13 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         contentPadding:
                         const EdgeInsets.symmetric(horizontal: 20),
-                        errorText: _emailError,
+                        errorText: model.emailError,
                       ),
                     ),
                     const SizedBox(height: 15),
                     TextField(
-                      obscureText: !_passwordVisible,
-                      controller: _passwordController,
+                      obscureText: !model.passwordVisible,
+                      controller: model.passwordController,
                       decoration: InputDecoration(
                         hintText: 'Password',
                         prefixIcon: const Padding(
@@ -170,15 +102,11 @@ class _SignupPageState extends State<SignupPage> {
                           child: Icon(LucideIcons.lock300, size: 24),
                         ),
                         suffixIcon: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _passwordVisible = !_passwordVisible;
-                            });
-                          },
+                          onTap: () => model.togglePasswordVisibility(setState),
                           child: Padding(
                             padding: const EdgeInsets.only(right: 10),
                             child: Icon(
-                              _passwordVisible
+                              model.passwordVisible
                                   ? LucideIcons.eyeOff300
                                   : LucideIcons.eye300,
                               size: 24,
@@ -190,13 +118,13 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         contentPadding:
                         const EdgeInsets.symmetric(horizontal: 20),
-                        errorText: _passwordError,
+                        errorText: model.passwordError,
                       ),
                     ),
                     const SizedBox(height: 15),
                     TextField(
-                      obscureText: !_confirmPasswordVisible,
-                      controller: _confirmPasswordController,
+                      obscureText: !model.confirmPasswordVisible,
+                      controller: model.confirmPasswordController,
                       decoration: InputDecoration(
                         hintText: 'Confirm Password',
                         prefixIcon: const Padding(
@@ -204,16 +132,12 @@ class _SignupPageState extends State<SignupPage> {
                           child: Icon(LucideIcons.lockKeyhole300, size: 24),
                         ),
                         suffixIcon: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _confirmPasswordVisible =
-                              !_confirmPasswordVisible;
-                            });
-                          },
+                          onTap: () =>
+                              model.toggleConfirmPasswordVisibility(setState),
                           child: Padding(
                             padding: const EdgeInsets.only(right: 10),
                             child: Icon(
-                              _confirmPasswordVisible
+                              model.confirmPasswordVisible
                                   ? LucideIcons.eyeOff300
                                   : LucideIcons.eye300,
                               size: 24,
@@ -225,7 +149,7 @@ class _SignupPageState extends State<SignupPage> {
                         ),
                         contentPadding:
                         const EdgeInsets.symmetric(horizontal: 20),
-                        errorText: _confirmPasswordError,
+                        errorText: model.confirmPasswordError,
                       ),
                     ),
                   ],
@@ -236,11 +160,11 @@ class _SignupPageState extends State<SignupPage> {
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _registerUser,
-                      style:
-                      ElevatedButton.styleFrom(minimumSize: const Size(0, 50)),
-                      child:
-                      const Text('Sign Up', style: TextStyle(fontSize: 20)),
+                      onPressed: () => model.registerUser(context, setState),
+                      style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(0, 50)),
+                      child: const Text('Sign Up',
+                          style: TextStyle(fontSize: 20)),
                     ),
                   ),
                 ),
@@ -254,13 +178,7 @@ class _SignupPageState extends State<SignupPage> {
                           fontSize: 12, color: AppColors.surfaceA50),
                     ),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const LoginPage()),
-                        );
-                      },
+                      onTap: () => model.goToLogin(context),
                       child: Text(
                         'Log In',
                         style: TextStyle(

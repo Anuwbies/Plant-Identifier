@@ -1,11 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_projects/color/app_colors.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import '../../api/efficientnetb3_api.dart';
-import '../information/information_page.dart';
-import '../unknown/unknown_page.dart';
+import 'scan_page_model.dart';
 
 class ScanPage extends StatefulWidget {
   final ImageProvider image;
@@ -17,93 +14,18 @@ class ScanPage extends StatefulWidget {
 }
 
 class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  bool _isScanning = true;
+  late ScanPageModel _model;
 
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
-
-    analyzeImage();
-  }
-
-  Future<void> analyzeImage() async {
-    try {
-      File? imageFile;
-
-      if (widget.image is FileImage) {
-        imageFile = (widget.image as FileImage).file;
-      } else {
-        throw Exception('ScanPage only supports FileImage for now');
-      }
-
-      // Call Django EfficientNetB3 API
-      final result = await EfficientNetB3Api.predictPlant(imageFile);
-
-      if (result.containsKey("error")) {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const UnknownPage()),
-          );
-        }
-        return;
-      }
-
-      // Extract data from API response
-      final sampleImageUrl = result["sample_image"] ?? "";
-      final predictedIndex = result["predicted_index"] ?? -1;
-      final speciesId = result["species_id"] ?? 0;
-      final commonName = result["common_name"] ?? "Unknown";
-      final scientificName = result["scientific_name"] ?? "Unknown";
-      final confidence = (result["confidence"] ?? 0.0) * 100;
-
-      // Confidence threshold
-      if (confidence < 60.0) {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const UnknownPage()),
-          );
-        }
-      } else {
-        // Go to InformationPage with speciesId and predictedIndex
-        if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (_) => InformationPage(
-                imageUrl: sampleImageUrl.isNotEmpty
-                    ? "http://10.0.2.2:8000$sampleImageUrl"
-                    : imageFile!.path,
-                predictedIndex: predictedIndex,
-                speciesId: speciesId,
-                commonName: commonName,
-                scientificName: scientificName,
-                confidence: confidence,
-              ),
-            ),
-                (Route<dynamic> route) => route.isFirst,
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const UnknownPage()),
-        );
-      }
-    } finally {
-      _controller.stop();
-      setState(() => _isScanning = false);
-    }
+    _model = ScanPageModel();
+    _model.init(widget.image, context, this);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _model.dispose();
     super.dispose();
   }
 
@@ -130,7 +52,7 @@ class _ScanPageState extends State<ScanPage> with SingleTickerProviderStateMixin
                 ),
               ),
               const SizedBox(height: 24),
-              if (_isScanning) ...[
+              if (_model.isScanning) ...[
                 SizedBox(
                   width: 100,
                   height: 100,

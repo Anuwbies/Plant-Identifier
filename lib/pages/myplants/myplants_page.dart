@@ -1,37 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_projects/color/app_colors.dart';
-import '../../api/saved_plants_api.dart';
-import '../information/information_page.dart'; // adjust the import path to your project structure
+import '../information/information_page.dart';
+import 'myplants_page_model.dart';
 
-class MyplantsPage extends StatefulWidget {
+class MyplantsPage extends StatelessWidget {
   const MyplantsPage({super.key});
 
   @override
-  State<MyplantsPage> createState() => _MyplantsPageState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => MyplantsPageModel(),
+      child: const _MyplantsPageView(),
+    );
+  }
 }
 
-class _MyplantsPageState extends State<MyplantsPage> {
-  late Future<List<dynamic>> _futurePlants;
-
-  @override
-  void initState() {
-    super.initState();
-    _futurePlants = SavedPlantsApi.fetchSavedPlants();
-  }
-
-  Future<void> _refreshPlants() async {
-    setState(() {
-      _futurePlants = SavedPlantsApi.fetchSavedPlants();
-    });
-  }
+class _MyplantsPageView extends StatelessWidget {
+  const _MyplantsPageView();
 
   @override
   Widget build(BuildContext context) {
+    final model = Provider.of<MyplantsPageModel>(context, listen: false);
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.only(top: 15, left: 15, right: 15),
         child: FutureBuilder<List<dynamic>>(
-          future: _futurePlants,
+          future: model.futurePlants,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -55,7 +51,7 @@ class _MyplantsPageState extends State<MyplantsPage> {
             final plants = snapshot.data!;
 
             return RefreshIndicator(
-              onRefresh: _refreshPlants,
+              onRefresh: model.refreshPlants,
               child: ListView.builder(
                 padding: const EdgeInsets.only(bottom: 85),
                 itemCount: plants.length,
@@ -127,16 +123,18 @@ class _MyplantsPageState extends State<MyplantsPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    commonName, maxLines: 1,
+                                    commonName,
+                                    maxLines: 1,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
-                                      overflow: TextOverflow.ellipsis
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    scientificName, maxLines: 1,
+                                    scientificName,
+                                    maxLines: 1,
                                     style: const TextStyle(
                                       fontSize: 14,
                                       overflow: TextOverflow.ellipsis,
@@ -149,8 +147,7 @@ class _MyplantsPageState extends State<MyplantsPage> {
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.redAccent),
                               onPressed: () async {
-                                await SavedPlantsApi.deleteSavedPlant(plant['id']);
-                                _refreshPlants(); // Refresh list after deletion
+                                await model.deletePlant(plant['id']);
                               },
                             ),
                           ],
